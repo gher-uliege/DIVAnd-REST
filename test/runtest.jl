@@ -1,4 +1,4 @@
-using Base.Test
+    using Base.Test
 
 import HTTP
 import JSON
@@ -11,7 +11,7 @@ const version = "v1"
 
 
 const bathdatasets = Dict{String,Tuple{String,Bool}}(
-   "GEBCO" => ("gebco_30sec_16.nc",true))
+    "GEBCO" => ("gebco_30sec_16.nc",true))
 
 
 """
