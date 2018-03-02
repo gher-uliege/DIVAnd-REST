@@ -112,16 +112,24 @@ function bathymetry(req::HTTP.Request)
     #return HTTP.Stream(HTTP.Response(200),open("test.txt"))
 end
 
+function analysis(req::HTTP.Request)
+    data = JSON.parse(HTTP.load(request))
+    observations = data["observations"]
+    return HTTP.Response(200,string(observations))
+end
 
 HTTP.register!(router, "GET", "/v1/bathymetry",HTTP.HandlerFunction(bathymetry))
+
+HTTP.register!(router, "POST", "/v1/analysis",HTTP.HandlerFunction(analysis))
 
 server = HTTP.Servers.Server(router)
 task = @async HTTP.serve(server, ip"127.0.0.1", 8001; verbose=false)
 
 sleep(1.0)
 
+URL = "http://127.0.0.1:8001/v1"
 
-req = HTTP.request("GET","http://127.0.0.1:8001/v1/bathymetry/"; query = Dict(
+req = HTTP.request("GET",URL * "/bathymetry/"; query = Dict(
     "bbox" => encodebbox([-10,30,50,45]),
     "resolution" => encodelist([1,1]),
     "dataset" => "GEBCO"
@@ -133,6 +141,14 @@ open(ncfile,"w") do f
     write(f,req.body)
 end
 
+
+req = HTTP.request("POST",URL * "/analysis/"; query = Dict(
+    "observations" => ["/home/abarth/projects/Julia/divand-example-data/Provencal/WOD-Salinity.nc"],
+    "resolution" => encodelist([1,1]),
+    "dataset" => "GEBCO"
+))
+
+@show req
 
 # end server
 put!(server.in, HTTP.Servers.KILL)
