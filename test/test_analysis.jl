@@ -4,6 +4,9 @@ import JSON
 URL = "http://127.0.0.1:8001/v1"
 resp = HTTP.request("POST",URL * "/analysis/", [], JSON.json(Dict(
     "observations" => ["/home/abarth/projects/Julia/divand-example-data/Provencal/WOD-Salinity.nc"],
+    "bbox" => encodebbox([-10,30,50,45]),
+    "len" => encodelist([100e3,100e3]),
+    "epsilon2" => 1.,
     "resolution" => encodelist([1,1]),
     "dataset" => "GEBCO"
 )))

@@ -130,8 +130,7 @@ function analysis(req::HTTP.Request)
         @show path
         analysisid = randstring(idlength)
         analysisid = "12345"
-        
-        
+                
         @async begin
             fname = analysisname(analysisid)
             if isfile(fname)
