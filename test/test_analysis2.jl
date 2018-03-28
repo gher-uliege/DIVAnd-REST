@@ -1,3 +1,6 @@
+import JSON
+import divand
+using DataStructures
 
 str = JSON.json(Dict(
     "observations" => ["/home/abarth/projects/Julia/divand-example-data/Provencal/WOD-Salinity.nc"],
@@ -6,7 +9,7 @@ str = JSON.json(Dict(
     "len" => encodelist([100e3,100e3]),
     "epsilon2" => 1.,
     "resolution" => encodelist([1,1]),
-    "years" => encodelist(1993,1993),
+    "years" => encodelist([1993,1993]),
     "dataset" => "GEBCO"
 ))
 
@@ -23,7 +26,9 @@ end
 
 for key in ["epsilon2"]
     if haskey(data,key)
-        data[key] = parse(Float64,data[key])
+        if !(typeof(data[key]) <: Number)
+            data[key] = parse(Float64,data[key])
+        end
     end
 end
 
@@ -33,7 +38,7 @@ minlon,minlat,maxlon,maxlat = data["bbox"]
 lonr = minlon:Δlon:maxlon
 latr = minlat:Δlat:maxlat
 
-bathname = "/home/ulg/gher/abarth/Julia/divand-example-data/Global/Bathymetry/gebco_30sec_16.nc"
+bathname = "/home/abarth/src/DIVAnd-REST/gebco_30sec_16.nc"
 bathisglobal = true
 
 #mask,(pm,pn),(xi,yi) = divand.domain(bathname,bathisglobal,lonr,latr)
@@ -48,8 +53,9 @@ filename = "WOD-Salinity.nc"
 obsname = data["observations"]
 epsilon2 = data["epsilon2"]
 
-value,lon,lat,depth,time,ids = divand.loadobs(Float64,obsname,"Salinity")
-
+# fixme just take one
+value,lon,lat,depth,time,ids = divand.loadobs(Float64,obsname[1],"Salinity")
+depthr = [10.,20.]
 
 sz = (length(lonr),length(latr),length(depthr))
 
@@ -143,7 +149,6 @@ metadata = OrderedDict(
 
 # edit the bathymetry
 mask,(pm,pn,po),(xi,yi,zi) = divand.domain(bathname,bathisglobal,lonr,latr,depthr)
-mask[3,3,1] = false
 
 ncglobalattrib,ncvarattrib = divand.SDNMetadata(metadata,filename,varname,lonr,latr)
 
@@ -153,8 +158,9 @@ end
 
 divand.diva3d((lonr,latr,depthr,TS),
               (lon,lat,depth,time),
-              value,epsilon2,
+              value,
               (lenx,leny,lenz),
+              epsilon2,
               filename,varname,
               bathname = bathname,
               bathisglobal = bathisglobal,
