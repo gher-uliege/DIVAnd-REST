@@ -4,33 +4,22 @@ using DataStructures
 
 str = JSON.json(Dict(
     "observations" => ["/home/abarth/projects/Julia/divand-example-data/Provencal/WOD-Salinity.nc"],
-    "bbox" => encodebbox([-10,30,50,45]),
-    "depth" => encodelist([0,20]),
-    "len" => encodelist([100e3,100e3]),
+    "bbox" => [-10,30,50,45],
+    "depth" => [0,20],
+    "len" => [100e3,100e3],
     "epsilon2" => 1.,
-    "resolution" => encodelist([1,1]),
-    "years" => encodelist([1993,1993]),
+    "resolution" => [1,1],
+    "years" => [1993,1993],
+    "monthlist" => [
+        [1,2,3],
+        [4,5,6],
+        [7,8,9],
+        [10,11,12]
+    ],
     "dataset" => "GEBCO"
 ))
 
 data = JSON.parse(str)
-if haskey(data,"bbox")
-    data["bbox"] = decodebbox(data["bbox"])
-end
-
-for key in ["resolution","depth","len","years"]
-    if haskey(data,key)
-        data[key] = decodelist(data[key])
-    end
-end
-
-for key in ["epsilon2"]
-    if haskey(data,key)
-        if !(typeof(data[key]) <: Number)
-            data[key] = parse(Float64,data[key])
-        end
-    end
-end
 
 minlon,minlat,maxlon,maxlat = data["bbox"]
 Δlon,Δlat = data["resolution"]
@@ -42,8 +31,6 @@ bathname = "/home/abarth/src/DIVAnd-REST/gebco_30sec_16.nc"
 bathisglobal = true
 
 #mask,(pm,pn),(xi,yi) = divand.domain(bathname,bathisglobal,lonr,latr)
-
-
 
 
 # 
@@ -64,24 +51,19 @@ leny = fill(data["len"][2],sz)
 lenz = [10+depthr[k]/15 for i = 1:sz[1], j = 1:sz[2], k = 1:sz[3]]
 
 @show mean(lenz)
-years = data["years"]
+years = [data["years"][1]:data["years"][2]]
 
-year_window = 10
 
 # winter: January-March    1,2,3
 # spring: April-June       4,5,6
 # summer: July-September   7,8,9
 # autumn: October-December 10,11,12
 
-monthlists = [
-    [1,2,3],
-    [4,5,6],
-    [7,8,9],
-    [10,11,12]
-];
+monthlist = data["monthlist"]
 
 
-TS = divand.TimeSelectorYW(years,year_window,monthlists)
+#TS = divand.TimeSelectorYW(years,year_window,monthlist)
+TS = divand.TimeSelectorYearListMonthList(years,monthlist)
 
 varname = "Salinity"
 
@@ -156,7 +138,7 @@ if isfile(filename)
    rm(filename) # delete the previous analysis
 end
 
-divand.diva3d((lonr,latr,depthr,TS),
+@time res = divand.diva3d((lonr,latr,depthr,TS),
               (lon,lat,depth,time),
               value,
               (lenx,leny,lenz),
