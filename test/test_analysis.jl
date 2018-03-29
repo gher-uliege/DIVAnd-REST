@@ -1,18 +1,19 @@
 import HTTP
 import JSON
+using DataStructures
 
 URL = "http://127.0.0.1:8001/v1"
-resp = HTTP.request("POST",URL * "/analysis/", [], JSON.json(Dict(
-    "observations" => ["/home/abarth/projects/Julia/divand-example-data/Provencal/WOD-Salinity.nc"],
-    "bbox" => encodebbox([-10,30,50,45]),
-    "len" => encodelist([100e3,100e3]),
-    "epsilon2" => 1.,
-    "resolution" => encodelist([1,1]),
-    "dataset" => "GEBCO"
-)))
+
+filename = joinpath(dirname(@__FILE__),"test_analysis2.json")
+
+data = JSON.parsefile(filename;
+                      dicttype=DataStructures.OrderedDict)
+
+resp = HTTP.request("POST",URL * "/analysis/", [], JSON.json(data))
 
 @show resp
 
+# redirects to queue
 URL2 = "http://127.0.0.1:8001" * Dict(resp.headers)["Location"]
 
 
@@ -32,4 +33,8 @@ while true
     end
 end
 
-@show resp
+#@show resp
+
+open("/tmp/output.nc","w") do f
+    write(f,resp.body)
+end
