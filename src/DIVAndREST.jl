@@ -223,7 +223,7 @@ function analysis(req::HTTP.Request)
         
         @show path
         analysisid = randstring(idlength)
-        analysisid = "12345"
+        #analysisid = "12345"
                 
         @async begin
             fname = analysisname(analysisid)
@@ -259,17 +259,19 @@ function queue(req::HTTP.Request)
     filename = analysisname(analysisid)
     const retry = 4    
     if isfile(filename)
-        return HTTP.Response(
-            307,
-            ["Location" => "$(basedir)/analysis/$(analysisid)"];
-            body = "lala"
-        )
+        @show "return file"
+        return sendfile(200,filename)
+ #        return HTTP.Response(
+ #           307,
+ #           ["Location" => "$(basedir)/analysis/$(analysisid)"];
+ #            body = "lala"
+ #      )
     else        
         return HTTP.Response(
             200,
-            ["Cache-Control" => "max-age=$(retry)"];
-            body = JSON.json(Dict(
-               "status" => "pending")))
+            ["Cache-Control" => "max-age=$(retry)"])
+#            body = JSON.json(Dict(
+#               "status" => "pending")))
     end
 end
 
@@ -284,6 +286,7 @@ HTTP.register!(router, "GET",  "$basedir/queue",HTTP.HandlerFunction(queue))
 HTTP.register!(router, "POST", "$basedir/moveto",HTTP.HandlerFunction(moveto))
 
 server = HTTP.Servers.Server(router)
-task = @async HTTP.serve(server, ip"127.0.0.1", 8001; verbose=false)
+#task = @async HTTP.serve(server, ip"127.0.0.1", 8001; verbose=false)
+task = @async HTTP.serve(server, ip"0.0.0.0", 8001; verbose=false)
 
 URL = "http://127.0.0.1:8001" * basedir

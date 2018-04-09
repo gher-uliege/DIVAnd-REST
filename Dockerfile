@@ -45,7 +45,7 @@ RUN i=PhysOcean; julia --eval "Pkg.add(\"$i\"); using $i"
 RUN i=divand;      julia --eval "Pkg.clone(\"https://github.com/gher-ulg/$i.jl\"); Pkg.build(\"$i\"); using $i"
 
 RUN mkdir /home/DIVAnd/DIVAnd-REST
-RUN . /home/DIVAnd/DIVAnd-REST
+ADD . /home/DIVAnd/DIVAnd-REST
 
 WORKDIR /home/DIVAnd/DIVAnd-REST
 
