@@ -14,8 +14,13 @@ const basedir = "/$(version)"
 
 const idlength = 24
 
+const port = parse(Int,get(ENV,"DIVAND_PORT","8001"))
+const workdir = get(ENV,"DIVAND_WORKDIR",tempdir())
+const baseurl = get(ENV,"DIVAND_EXTERNAL_BASEURL","http://127.0.0.1:$(port)/")
+
+
 const bathdatasets = Dict{String,Tuple{String,Bool}}(
-    "GEBCO" => ("gebco_30sec_16.nc",true))
+    "GEBCO" => ("data/gebco_30sec_16.nc",true))
 
 
 const datalist = Dict{String,String}(
@@ -24,17 +29,19 @@ const datalist = Dict{String,String}(
 )
 
 
-const workdir = "/tmp/"
 
 """
    strbbox = encodebbox(bbox)
    minlon,minlat,maxlon,maxlat
 """
+
 encodebbox(bbox) = join(bbox,",")
 decodebbox(strbbox) = parse.(Float64,split(strbbox,","))
 
 encodelist(list) = join(list,",")
 decodelist(strlist) = parse.(Float64,split(strlist,","))
+
+
 
 
 function savebathnc(filename,b,xy)
@@ -162,15 +169,6 @@ end
 analysisname(analysisid) = joinpath(workdir,analysisid * ".nc")
 
 
-# minlon,minlat,maxlon,maxlat
-bbox = [-180,-90,180,90]
-@test decodebbox(encodebbox(bbox)) == bbox
-
-list = [1,2]
-@test decodelist(encodelist(list)) == list
-
-
-
 
 router = HTTP.Router()
 
@@ -286,7 +284,9 @@ HTTP.register!(router, "GET",  "$basedir/queue",HTTP.HandlerFunction(queue))
 HTTP.register!(router, "POST", "$basedir/moveto",HTTP.HandlerFunction(moveto))
 
 server = HTTP.Servers.Server(router)
-#task = @async HTTP.serve(server, ip"127.0.0.1", 8001; verbose=false)
-task = @async HTTP.serve(server, ip"0.0.0.0", 8001; verbose=false)
+#task = @async HTTP.serve(server, ip"127.0.0.1", port; verbose=false)
+task = @async HTTP.serve(server, ip"0.0.0.0", port; verbose=false)
 
-URL = "http://127.0.0.1:8001" * basedir
+# e.g.
+# "http://127.0.0.1:8001/v1"
+URL = baseurl * basedir
