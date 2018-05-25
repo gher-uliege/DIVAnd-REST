@@ -84,7 +84,7 @@ end
 
 
 
-function resolvedata(url)       
+function resolvedata(url)
     if startswith(url,"sampledata:")
         return datalist[split(url,"data:")[2]]
     elseif (startswith(url,"http:") || startswith(url,"https:") ||
@@ -93,7 +93,7 @@ function resolvedata(url)
     else
         error("URI scheme is not allowed $(url)")
     end
-end        
+end
 
 function analysis_wrapper(data,filename)
     minlon,minlat,maxlon,maxlat = data["bbox"]
@@ -140,7 +140,7 @@ function analysis_wrapper(data,filename)
 
     ncglobalattrib,ncvarattrib =
         if haskey(data,"metadata")
-            metadata = data["metadata"]        
+            metadata = data["metadata"]
             divand.SDNMetadata(metadata,filename,varname,lonr,latr)
         else
             Dict{String,String}(),Dict{String,String}()
@@ -172,13 +172,32 @@ analysisname(analysisid) = joinpath(workdir,analysisid * ".nc")
 
 router = HTTP.Router()
 
-function sendfile(code,filename)
+function sendfile_default(code,filename)
     f = open(filename)
     data = read(f)
+    @show length(data)
     close(f)
 
     return HTTP.Response(code,data)
 end
+
+function sendfile_mmap(code,filename)
+    @show "mmap",filename
+    data = Mmap.mmap(open(filename), Array{UInt8,1})
+    return HTTP.Response(code,data)
+end
+
+function sendfile_nginx(code,filename)
+    @show "nginx fname",filename
+    return HTTP.Response(
+        code,
+        ["X-Accel-Redirect" => filename]);
+
+end
+
+#sendfile = sendfile_nginx
+sendfile = sendfile_mmap
+#sendfile = sendfile_default
 
 function bathymetry(req::HTTP.Request)
     params = HTTP.queryparams(HTTP.URI(req.target))
@@ -209,6 +228,18 @@ function bathymetry(req::HTTP.Request)
     #return HTTP.Stream(HTTP.Response(200),open("test.txt"))
 end
 
+
+function options_analysis(req::HTTP.Request)
+
+    return HTTP.Response(
+        200,
+    ["Access-Control-Allow-Origin" => "*",
+     "Access-Control-Allow-Methods" =>  "GET, POST, PUT",
+     "Access-Control-Allow-Headers" => "Content-Type"
+     ])
+
+end
+
 function analysis(req::HTTP.Request)
     path = HTTP.URI(req.target).path
 
@@ -216,26 +247,30 @@ function analysis(req::HTTP.Request)
         data = JSON.parse(
             HTTP.payload(req,String);
             dicttype=DataStructures.OrderedDict)
-        
+
         observations = data["observations"]
-        
+
         @show path
         analysisid = randstring(idlength)
         #analysisid = "12345"
-                
+
         @async begin
+            println("request analysis")
             fname = analysisname(analysisid)
             if isfile(fname)
                 rm(fname)
             end
             #sleep(5.0)
 
+            println("request analysis 2")
             analysis_wrapper(data,fname)
+            println("request analysis 3")
             #f = open(fname,"w")
             #write(f,"lala123")
             #close(f)
         end
-        
+        println("request analysis 4")
+
         # analysis in progress
         return HTTP.Response(202,["Location" => "$(basedir)/queue/$(analysisid)"])
         #return HTTP.Response(202,["Location" => "$(basedir)/queue/"])
@@ -255,21 +290,21 @@ function queue(req::HTTP.Request)
     path = HTTP.URI(req.target).path
     analysisid = split(path,"$(basedir)/queue/")[2]
     filename = analysisname(analysisid)
-    const retry = 4    
+    const retry = 4
     if isfile(filename)
         @show "return file"
-        return sendfile(200,filename)
- #        return HTTP.Response(
- #           307,
- #           ["Location" => "$(basedir)/analysis/$(analysisid)"];
- #            body = "lala"
- #      )
-    else        
+#        return sendfile(200,filename)
+        return HTTP.Response(
+           307,
+           ["Location" => "$(basedir)/analysis/$(analysisid)"];
+            body = "lala"
+      )
+    else
         return HTTP.Response(
             200,
-            ["Cache-Control" => "max-age=$(retry)"])
-#            body = JSON.json(Dict(
-#               "status" => "pending")))
+            ["Cache-Control" => "max-age=$(retry)"],
+            body = JSON.json(Dict(
+               "status" => "pending")))
     end
 end
 
@@ -278,8 +313,11 @@ function moveto(req::HTTP.Request)
 end
 
 HTTP.register!(router, "GET",  "$basedir/bathymetry",HTTP.HandlerFunction(bathymetry))
+
 HTTP.register!(router, "POST", "$basedir/analysis",HTTP.HandlerFunction(analysis))
 HTTP.register!(router, "GET",  "$basedir/analysis",HTTP.HandlerFunction(analysis))
+HTTP.register!(router, "OPTIONS",  "$basedir/analysis",HTTP.HandlerFunction(options_analysis))
+
 HTTP.register!(router, "GET",  "$basedir/queue",HTTP.HandlerFunction(queue))
 HTTP.register!(router, "POST", "$basedir/moveto",HTTP.HandlerFunction(moveto))
 
