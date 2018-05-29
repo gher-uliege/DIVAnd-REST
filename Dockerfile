@@ -17,6 +17,7 @@ RUN apt-get install -y ca-certificates curl libnlopt0 make gcc
 RUN apt-get install -y wget
 RUN apt-get install -y emacs-nox
 RUN apt-get install -y nginx supervisor
+RUN apt-get install -y jq
 
 RUN wget -O /usr/share/emacs/site-lisp/julia-mode.el https://raw.githubusercontent.com/JuliaEditorSupport/julia-emacs/master/julia-mode.el
 
