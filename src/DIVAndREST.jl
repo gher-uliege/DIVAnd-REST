@@ -195,8 +195,8 @@ function sendfile_nginx(code,filename)
 
 end
 
-#sendfile = sendfile_nginx
-sendfile = sendfile_mmap
+sendfile = sendfile_nginx
+#sendfile = sendfile_mmap
 #sendfile = sendfile_default
 
 function bathymetry(req::HTTP.Request)
@@ -294,11 +294,17 @@ function queue(req::HTTP.Request)
     if isfile(filename)
         @show "return file"
 #        return sendfile(200,filename)
+        # return HTTP.Response(
+        #    307,
+        #    ["Location" => "$(basedir)/analysis/$(analysisid)"];
+        #     body = "lala"
         return HTTP.Response(
-           307,
-           ["Location" => "$(basedir)/analysis/$(analysisid)"];
-            body = "lala"
-      )
+            200,
+            body = JSON.json(Dict(
+                "status" => "done",
+                "url" => "$(basedir)/analysis/$(analysisid)"))
+        )
+        
     else
         return HTTP.Response(
             200,

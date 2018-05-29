@@ -1,7 +1,7 @@
 # build as:
-# sudo docker build -t abarth/diva-julia .
+# sudo docker build -t abarth/DIVA .
 
-FROM ubuntu:16.04
+FROM ubuntu:18.04
 
 MAINTAINER Alexander Barth <a.barth@ulg.ac.be>
 
@@ -9,13 +9,14 @@ EXPOSE 8001
 
 USER root
 
+
 RUN apt-get update
 RUN apt-get install -y libnetcdf-dev netcdf-bin
 RUN apt-get install -y unzip
 RUN apt-get install -y ca-certificates curl libnlopt0 make gcc 
 RUN apt-get install -y wget
 RUN apt-get install -y emacs-nox
-
+RUN apt-get install -y nginx supervisor
 
 RUN wget -O /usr/share/emacs/site-lisp/julia-mode.el https://raw.githubusercontent.com/JuliaEditorSupport/julia-emacs/master/julia-mode.el
 
