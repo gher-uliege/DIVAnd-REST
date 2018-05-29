@@ -97,5 +97,5 @@ data = JSON.parse(str; dicttype=DataStructures.OrderedDict)
 filename = "Water_body_$(replace(data["varname"],' ','_')).4Danl.nc"
 
 
-#analysis_wrapper(data,filename)
+analysis_wrapper(data,filename)
 
