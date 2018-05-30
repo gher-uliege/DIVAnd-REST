@@ -140,7 +140,8 @@ function analysis_wrapper(data,filename)
 
     # use all keys with the metadata_ prefix
     metadata = Dict((replace(k,r"^metadata_",""),v)
-                    for (k,v) in data0 if startswith(k,"metadata_"))
+                    for (k,v) in data if startswith(k,"metadata_"))
+    @show metadata
     
     ncglobalattrib,ncvarattrib =
         if length(metadata) > 0

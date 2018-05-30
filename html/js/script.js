@@ -285,7 +285,7 @@ var table, data, data2;
     
     table = document.getElementById("DIVAnd_table");
     table.onkeyup = function(event)  { 
-        console.log("this",this,event.target);
+        //console.log("this",this,event.target);
         var target = event.target;
         var name = target.name;
         var next = target.nextSibling || {};

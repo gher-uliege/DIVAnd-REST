@@ -1,0 +1,10 @@
+input:focus {
+/*    border-color: blue;*/
+}
+
+
+input {
+    padding: 5px;
+    border-radius: 3px;
+    border-color: #eee;
+}

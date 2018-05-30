@@ -1,11 +1,11 @@
 # build as:
-# sudo docker build -t abarth/DIVA .
-
+# sudo docker build -t abarth/divand-rest .
+# 
 FROM ubuntu:18.04
 
 MAINTAINER Alexander Barth <a.barth@ulg.ac.be>
 
-EXPOSE 8001
+EXPOSE 8002
 
 USER root
 
@@ -41,15 +41,16 @@ RUN julia --eval 'Pkg.init()'
 RUN i=HTTP; julia --eval "Pkg.add(\"$i\"); using $i"
 RUN i=JSON; julia --eval "Pkg.add(\"$i\"); using $i"
 RUN i=NCDatasets; julia --eval "Pkg.add(\"$i\"); using $i"
-
 RUN i=PhysOcean; julia --eval "Pkg.add(\"$i\"); using $i"
-
-RUN i=divand;       julia --eval "Pkg.clone(\"https://github.com/gher-ulg/$i.jl\"); Pkg.build(\"$i\"); using $i"
+RUN i=divand;    julia --eval "Pkg.clone(\"https://github.com/gher-ulg/$i.jl\"); Pkg.build(\"$i\"); using $i"
 
 RUN mkdir /home/DIVAnd/DIVAnd-REST
 ADD . /home/DIVAnd/DIVAnd-REST
 
-WORKDIR /home/DIVAnd/DIVAnd-REST
+WORKDIR /home/DIVAnd/DIVAnd-REST/
 
+RUN wget -O /home/DIVAnd/DIVAnd-REST/data/gebco_30sec_16.nc https://b2drop.eudat.eu/s/o0vinoQutAC7eb0/download 
+RUN wget -O /home/DIVAnd/DIVAnd-REST/data/WOD-Salinity.nc 'http://b2drop.eudat.eu/s/UsF3RyU3xB1UM2o/download' 
 
-CMD ["bash", "/usr/local/bin/run.sh"]
+#CMD ["bash", "/usr/local/bin/run.sh"]
+CMD supervisord --configuration /home/DIVAnd/DIVAnd-REST/utils/supervisor-app.conf
