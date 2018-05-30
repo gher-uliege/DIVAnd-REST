@@ -138,9 +138,12 @@ function analysis_wrapper(data,filename)
     #TS = divand.TimeSelectorYW(years,year_window,monthlist)
     TS = divand.TimeSelectorYearListMonthList(years,monthlist)
 
+    # use all keys with the metadata_ prefix
+    metadata = Dict((replace(k,r"^metadata_",""),v)
+                    for (k,v) in data0 if startswith(k,"metadata_"))
+    
     ncglobalattrib,ncvarattrib =
-        if haskey(data,"metadata")
-            metadata = data["metadata"]
+        if length(metadata) > 0
             divand.SDNMetadata(metadata,filename,varname,lonr,latr)
         else
             Dict{String,String}(),Dict{String,String}()

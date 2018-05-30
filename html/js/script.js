@@ -47,34 +47,30 @@ var SAMPLE_DATA = {
       ]
    ],
    "bathymetry": "sampledata:gebco_30sec_16",
-   "metadata": {
-      "project": "SeaDataCloud",
-      "institution_urn": "SDN:EDMO::1579",
-      "production": "Diva group. E-mails: a.barth@ulg.ac.be, swatelet@ulg.ac.be",
-      "Author_e-mail": [
-         "Your Name1 <name1@example.com>",
-         "Other Name <name2@example.com>"
-      ],
-      "source": "observational data from SeaDataNet/EMODNet Chemistry Data Network",
-      "comment": "...",
-      "parameter_keyword_urn": "SDN:P35::EPC00001",
-      "search_keywords_urn": [
-         "SDN:P02::PSAL"
-      ],
-      "area_keywords_urn": [
-         "SDN:C19::3_3"
-      ],
-      "product_version": "1.0",
-      "netcdf_standard_name": "sea_water_salinity",
-      "netcdf_long_name": "sea water salinity",
-      "netcdf_units": "1e-3",
-      "abstract": "...",
-      "acknowledgment": "...",
-      "doi": "..."
-   }
+   "metadata_project": "SeaDataCloud",
+   "metadata_institution_urn": "SDN:EDMO::1579",
+   "metadata_production": "Diva group. E-mails: a.barth@ulg.ac.be, swatelet@ulg.ac.be",
+   "metadata_Author_e-mail": [
+      "Your Name1 <name1@example.com>",
+      "Other Name <name2@example.com>"
+   ],
+   "metadata_source": "observational data from SeaDataNet/EMODNet Chemistry Data Network",
+   "metadata_comment": "...",
+   "metadata_parameter_keyword_urn": "SDN:P35::EPC00001",
+   "metadata_search_keywords_urn": [
+      "SDN:P02::PSAL"
+   ],
+   "metadata_area_keywords_urn": [
+      "SDN:C19::3_3"
+   ],
+   "metadata_product_version": "1.0",
+   "metadata_netcdf_standard_name": "sea_water_salinity",
+   "metadata_netcdf_long_name": "sea water salinity",
+   "metadata_netcdf_units": "1e-3",
+   "metadata_abstract": "...",
+   "metadata_acknowledgment": "...",
+   "metadata_doi": "..."
 };
-
-
 
 
 
@@ -174,41 +170,57 @@ function run() {
     var baseurl = "";
     var divand = new DIVAnd(baseurl);
     
-    //requestAnalysis(data,callback);
+    table = document.getElementById("DIVAnd_table");    
+    var data = extractform(table,SAMPLE_DATA);
+
+    document.getElementById("status").innerHTML = "";
     divand.analysis(data,callback);
 }
 
+
+
 function appendform(table,data) {
+    var tr, td, label, input;
+    
     for (var key in data) {
         if (data.hasOwnProperty(key)) {
             console.log(key + " -> " + data[key]);
 
-            var tr = document.createElement("tr");
-            
-            var td = document.createElement("td");
-            
-            var x = document.createElement("label");
-            x.appendChild(document.createTextNode(key));
-            td.appendChild(x);
+            tr = document.createElement("tr");
+            td = document.createElement("td");
+            label = document.createElement("label");
+            label.appendChild(document.createTextNode(key));
+            td.appendChild(label);
             tr.appendChild(td);
-            
-            var td = document.createElement("td");    
-            var x = document.createElement("input");
-            x.setAttribute("type", "text");
-            
-            if (data[key].constructor === Array) {
-                value = data[key].join();
-            }
-            else if (typeof data[key] === 'object') {
 
+            td = document.createElement("td");
+
+
+            if (key === "monthlist")  {
+                for (var i = 0; i < data[key].length; i++) {
+                    input = document.createElement("input");
+                    input.setAttribute("name", key);
+                    input.setAttribute("data-type", "list");
+                    input.setAttribute("value", data[key][i]);
+                    td.appendChild(input);
+                }
             }
-            else {
-                value = data[key];
+            else  {
+                input = document.createElement("input");
+                input.setAttribute("type", "text");
+                input.setAttribute("name", key);
+                
+                if (data[key].constructor === Array) {
+                    value = data[key].join();                                       
+                }
+                else {
+                    value = data[key];
+                }
+            
+                input.setAttribute("value", value);
+                
+                td.appendChild(input);
             }
-            
-            x.setAttribute("value", value);
-            
-            td.appendChild(x);
             tr.appendChild(td);
     
             table.appendChild(tr);
@@ -218,6 +230,44 @@ function appendform(table,data) {
     
 }
 
+function parse(sampleval,value) {
+    if (typeof sampleval == "string") {
+        return value;
+    }
+    else if (typeof sampleval == "number") {
+        return parseFloat(value);
+    }            
+    else if (sampleval.constructor === Array) {                
+        return value.split(",").map(function(elem) {
+            console.log("elem",elem);
+            return parse(sampleval[0],elem);
+        });
+    }
+    
+}
+
+function extractform(table,data) {
+    var d = {};
+    
+    for (var key in data) {
+        if (data.hasOwnProperty(key)) {
+            sampleval = data[key]
+
+            if (key === "monthlist")  {
+                inputs = table.querySelectorAll("[name=" + key + "]");
+                d[key] = Array.prototype.map.call(inputs,function(e) {
+                    return parse(sampleval[0],e.value); });
+            }
+            else {
+                value = table.querySelector("[name=" + key + "]").value;
+                d[key] = parse(sampleval,value);
+            }
+        }
+    }
+    return d;
+}
+
+var table, data, data2;
 
 (function() {
    // your page initialization code here
@@ -225,10 +275,37 @@ function appendform(table,data) {
 
 
     var table = document.getElementById("DIVAnd_table");
-    var data = SAMPLE_DATA;
+    data = SAMPLE_DATA;
     appendform(table,data);    
     
     document.getElementById("run").onclick = run;
 
+    data2 = extractform(table,data);
+    console.log(data2);
+    
+    table = document.getElementById("DIVAnd_table");
+    table.onkeyup = function(event)  { 
+        console.log("this",this,event.target);
+        var target = event.target;
+        var name = target.name;
+        var next = target.nextSibling || {};
+        
+        if (target.value !== "" && target.getAttribute("data-type") === "list") {
+            console.log("nn",next);
+
+            if (next.name !== target.name) {
+                elem = target.cloneNode();
+                elem.value = "";
+                target.parentNode.insertBefore(elem,target.nextSibling);
+            }
+        }
+
+        var l = document.querySelectorAll("input[name=" + name + "]");
+        for (i =  l.length-1; i > 1; i--) {
+            if (l[i].value === "" && l[i-1].value === "") {
+                l[i].remove();
+            }
+        }
+    };  
     
 })();

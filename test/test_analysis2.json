@@ -47,29 +47,27 @@
       ]
    ],
    "bathymetry": "sampledata:gebco_30sec_16",
-   "metadata": {
-      "project": "SeaDataCloud",
-      "institution_urn": "SDN:EDMO::1579",
-      "production": "Diva group. E-mails: a.barth@ulg.ac.be, swatelet@ulg.ac.be",
-      "Author_e-mail": [
-         "Your Name1 <name1@example.com>",
-         "Other Name <name2@example.com>"
-      ],
-      "source": "observational data from SeaDataNet/EMODNet Chemistry Data Network",
-      "comment": "...",
-      "parameter_keyword_urn": "SDN:P35::EPC00001",
-      "search_keywords_urn": [
-         "SDN:P02::PSAL"
-      ],
-      "area_keywords_urn": [
-         "SDN:C19::3_3"
-      ],
-      "product_version": "1.0",
-      "netcdf_standard_name": "sea_water_salinity",
-      "netcdf_long_name": "sea water salinity",
-      "netcdf_units": "1e-3",
-      "abstract": "...",
-      "acknowledgment": "...",
-      "doi": "..."
-   }
+   "metadata_project": "SeaDataCloud",
+   "metadata_institution_urn": "SDN:EDMO::1579",
+   "metadata_production": "Diva group. E-mails: a.barth@ulg.ac.be, swatelet@ulg.ac.be",
+   "metadata_Author_e-mail": [
+      "Your Name1 <name1@example.com>",
+      "Other Name <name2@example.com>"
+   ],
+   "metadata_source": "observational data from SeaDataNet/EMODNet Chemistry Data Network",
+   "metadata_comment": "...",
+   "metadata_parameter_keyword_urn": "SDN:P35::EPC00001",
+   "metadata_search_keywords_urn": [
+      "SDN:P02::PSAL"
+   ],
+   "metadata_area_keywords_urn": [
+      "SDN:C19::3_3"
+   ],
+   "metadata_product_version": "1.0",
+   "metadata_netcdf_standard_name": "sea_water_salinity",
+   "metadata_netcdf_long_name": "sea water salinity",
+   "metadata_netcdf_units": "1e-3",
+   "metadata_abstract": "...",
+   "metadata_acknowledgment": "...",
+   "metadata_doi": "..."
 }
