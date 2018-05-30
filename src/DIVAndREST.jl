@@ -152,18 +152,22 @@ function analysis_wrapper(data,filename)
     if isfile(filename)
        rm(filename) # delete the previous analysis
     end
-
-    @time res = divand.diva3d((lonr,latr,depthr,TS),
-                  (lon,lat,depth,time),
-                  value,
-                  (lenx,leny,lenz),
-                  epsilon2,
-                  filename,varname,
-                  bathname = bathname,
-                  bathisglobal = bathisglobal,
-                  ncvarattrib = ncvarattrib,
-                  ncglobalattrib = ncglobalattrib,
-           )
+    
+    memtofit = 10
+    
+    @time res = divand.diva3d(
+        (lonr,latr,depthr,TS),
+        (lon,lat,depth,time),
+        value,
+        (lenx,leny,lenz),
+        epsilon2,
+        filename,varname,
+        bathname = bathname,
+        bathisglobal = bathisglobal,
+        ncvarattrib = ncvarattrib,
+        ncglobalattrib = ncglobalattrib,
+        memtofit = memtofit
+    )
 
     divand.saveobs(filename,(lon,lat,depth,time),ids)
 end
