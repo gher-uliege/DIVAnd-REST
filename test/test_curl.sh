@@ -24,6 +24,8 @@ while true; do
     curl --silent "$baseurl$LOCATION" > tmpfile
     cat tmpfile
     status=$(jq -r .status < tmpfile)
+    echo "status $status"
+    
     if [ "$status" == "done" ]; then
         echo "$ok"
         break
