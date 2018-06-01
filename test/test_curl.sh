@@ -22,7 +22,7 @@ rm "$FILENAME"
 while true; do
     echo "Check if DIVAnd is done"
     curl --silent "$baseurl$LOCATION" > tmpfile
-    cat tmpfile
+    #cat tmpfile
     status=$(jq -r .status < tmpfile)
     echo "status $status"
     
