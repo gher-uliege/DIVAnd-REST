@@ -200,6 +200,7 @@ function appendform(table,data) {
                 for (var i = 0; i < data[key].length; i++) {
                     input = document.createElement("input");
                     input.setAttribute("name", key);
+                    input.setAttribute("type", "text");
                     input.setAttribute("data-type", "list");
                     input.setAttribute("value", data[key][i]);
                     td.appendChild(input);
@@ -255,8 +256,13 @@ function extractform(table,data) {
 
             if (key === "monthlist")  {
                 inputs = table.querySelectorAll("[name=" + key + "]");
-                d[key] = Array.prototype.map.call(inputs,function(e) {
-                    return parse(sampleval[0],e.value); });
+                val = Array.prototype.map.call(inputs,function(e) { return e.value });
+
+                if (val[val.length-1] === "") {
+                    val.splice(-1,1)
+                }
+
+                d[key] = val.map(function(e) { return parse(sampleval[0],e); });
             }
             else {
                 value = table.querySelector("[name=" + key + "]").value;
@@ -291,7 +297,7 @@ var table, data, data2;
         var next = target.nextSibling || {};
         
         if (target.value !== "" && target.getAttribute("data-type") === "list") {
-            console.log("nn",next);
+            //console.log("nn",next);
 
             if (next.name !== target.name) {
                 elem = target.cloneNode();
