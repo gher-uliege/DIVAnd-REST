@@ -6,17 +6,26 @@ import divand
 using NCDatasets
 using DataStructures
 
+include("webdav.jl")
+
+const EXTERNAL_HOST = get(ENV,"DIVAND_EXTERNAL_HOST","127.0.0.1")
+const EXTERNAL_MOUNTPOINT = get(ENV,"DIVAND_EXTERNAL_MOUNTPOINT","/")
+const EXTERNAL_PORT = parse(Int,get(ENV,"DIVAND_EXTERNAL_PORT","8002"))
+const port = parse(Int,get(ENV,"DIVAND_PORT","8001"))
+const workdir = get(ENV,"DIVAND_WORKDIR",tempdir())
+const baseurl = get(ENV,"DIVAND_EXTERNAL_BASEURL","http://$(EXTERNAL_HOST):$(EXTERNAL_PORT)/")
 
 # Version of the REST API
 const version = "v1"
 
+# for example /v1
 const basedir = "/$(version)"
+
+# for example DIVAnd/v1
+const external_basedir = "$(EXTERNAL_MOUNTPOINT)$(version)"
 
 const idlength = 24
 
-const port = parse(Int,get(ENV,"DIVAND_PORT","8001"))
-const workdir = get(ENV,"DIVAND_WORKDIR",tempdir())
-const baseurl = get(ENV,"DIVAND_EXTERNAL_BASEURL","http://127.0.0.1:$(port)/")
 
 
 const bathdatasets = Dict{String,Tuple{String,Bool}}(
@@ -323,7 +332,32 @@ function queue(req::HTTP.Request)
     end
 end
 
-function moveto(req::HTTP.Request)
+function upload(req::HTTP.Request)
+    data = JSON.parse(
+        HTTP.payload(req,String);
+        dicttype=DataStructures.OrderedDict)
+
+    @show data
+
+    server = WebDAV(data["webdav"],data["username"],data["password"])
+
+    # HTTP.open("GET", data["url"],[]) do stream
+    #     #open(server,data["webdav_path"],"w") do out                    
+    #     open("/tmp/toto123","w") do out                    
+    #         while !eof(stream)
+    #             data = readavailable(stream)
+    #             @show typeof(data)
+    #             write(out,data)
+    #         end
+    #     end
+    # end
+    
+    open(Base.download(data["url"]),"r") do stream
+        @show "upload",data["url"]
+        upload(server,stream,data["webdav_path"])
+        @show "done upload",data["url"]
+    end
+        
     return HTTP.Response(200,"move")
 end
 
@@ -334,7 +368,7 @@ HTTP.register!(router, "GET",  "$basedir/analysis",HTTP.HandlerFunction(analysis
 HTTP.register!(router, "OPTIONS",  "$basedir/analysis",HTTP.HandlerFunction(options_analysis))
 
 HTTP.register!(router, "GET",  "$basedir/queue",HTTP.HandlerFunction(queue))
-HTTP.register!(router, "POST", "$basedir/moveto",HTTP.HandlerFunction(moveto))
+HTTP.register!(router, "POST", "$basedir/upload",HTTP.HandlerFunction(upload))
 
 server = HTTP.Servers.Server(router)
 #task = @async HTTP.serve(server, ip"127.0.0.1", port; verbose=false)
