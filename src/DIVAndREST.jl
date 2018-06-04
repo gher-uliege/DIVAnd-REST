@@ -151,7 +151,7 @@ function analysis_wrapper(data,filename)
     metadata = Dict((replace(k,r"^metadata_",""),v)
                     for (k,v) in data if startswith(k,"metadata_"))
     @show metadata
-    
+
     ncglobalattrib,ncvarattrib =
         if length(metadata) > 0
             divand.SDNMetadata(metadata,filename,varname,lonr,latr)
@@ -162,9 +162,9 @@ function analysis_wrapper(data,filename)
     if isfile(filename)
        rm(filename) # delete the previous analysis
     end
-    
+
     memtofit = 10
-    
+
     @time res = divand.diva3d(
         (lonr,latr,depthr,TS),
         (lon,lat,depth,time),
@@ -189,26 +189,26 @@ analysisname(analysisid) = joinpath(workdir,analysisid * ".nc")
 
 router = HTTP.Router()
 
-function sendfile_default(code,filename)
+function sendfile_default(code,filename,headers = [])
     f = open(filename)
     data = read(f)
     @show length(data)
     close(f)
 
-    return HTTP.Response(code,data)
+    return HTTP.Response(code,data,headers,headers = [])
 end
 
 function sendfile_mmap(code,filename)
     @show "mmap",filename
     data = Mmap.mmap(open(filename), Array{UInt8,1})
-    return HTTP.Response(code,data)
+    return HTTP.Response(code,data,headers)
 end
 
-function sendfile_nginx(code,filename)
+function sendfile_nginx(code,filename,headers = [])
     @show "nginx fname",filename
     return HTTP.Response(
         code,
-        ["X-Accel-Redirect" => filename]);
+        ["X-Accel-Redirect" => filename, headers...]);
 
 end
 
@@ -238,7 +238,10 @@ function bathymetry(req::HTTP.Request)
     #end
     savebathnc(filename,bath,(xi,yi))
 
-    return sendfile(200,filename)
+    return sendfile(200,filename, [
+        "Content-Type" => "application/netcdf",
+        "Content-Disposition" => "attachment; filename=\"bathymetry.nc\""])
+
     #stream = HTTP.stream(open(filename))
     #HTTP.Response(200,"Hi")
     #return HTTP.Response(200,stream)
@@ -297,7 +300,9 @@ function analysis(req::HTTP.Request)
         analysisid = split(path,"$(basedir)/analysis/")[2]
         fname = analysisname(analysisid)
         if isfile(fname)
-            return sendfile(200,fname)
+            return sendfile(200,fname, [
+                "Content-Type" => "application/netcdf",
+                "Content-Disposition" => "attachment; filename=\"DIVAnd-analysis.nc\""])
         else
             return HTTP.Response(404,"Not found")
         end
@@ -318,15 +323,17 @@ function queue(req::HTTP.Request)
         #     body = "lala"
         return HTTP.Response(
             200,
+            ["Content-Type" => "application/json"],
             body = JSON.json(Dict(
                 "status" => "done",
                 "url" => "$(basedir)/analysis/$(analysisid)"))
         )
-        
+
     else
         return HTTP.Response(
             200,
-            ["Cache-Control" => "max-age=$(retry)"],
+            ["Cache-Control" => "max-age=$(retry)",
+             "Content-Type" => "application/json"],
             body = JSON.json(Dict(
                "status" => "pending")))
     end
@@ -342,8 +349,8 @@ function upload(req::HTTP.Request)
     server = WebDAV(data["webdav"],data["username"],data["password"])
 
     # HTTP.open("GET", data["url"],[]) do stream
-    #     #open(server,data["webdav_path"],"w") do out                    
-    #     open("/tmp/toto123","w") do out                    
+    #     #open(server,data["webdav_path"],"w") do out
+    #     open("/tmp/toto123","w") do out
     #         while !eof(stream)
     #             data = readavailable(stream)
     #             @show typeof(data)
@@ -351,13 +358,13 @@ function upload(req::HTTP.Request)
     #         end
     #     end
     # end
-    
+
     open(Base.download(data["url"]),"r") do stream
         @show "upload",data["url"]
         upload(server,stream,data["webdav_path"])
         @show "done upload",data["url"]
     end
-        
+
     return HTTP.Response(200,"move")
 end
 
