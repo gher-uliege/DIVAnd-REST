@@ -20,12 +20,12 @@ FILENAME=out.nc
 rm "$FILENAME"
 
 while true; do
-    echo "Check if DIVAnd is done"
+    #echo "Check if DIVAnd is done"
     curl --silent "$baseurl$LOCATION" > tmpfile
     #cat tmpfile
     status=$(jq -r .status < tmpfile)
     echo "status $status"
-    
+
     if [ "$status" == "done" ]; then
         echo "$ok"
         break
@@ -36,3 +36,5 @@ done
 url=$(jq -r .url < tmpfile)
 
 curl --out "$FILENAME" --silent  "$baseurl$url"
+
+echo "The output is in $FILENAME"
