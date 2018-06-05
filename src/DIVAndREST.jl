@@ -316,17 +316,14 @@ function queue(req::HTTP.Request)
     const retry = 4
     if isfile(filename)
         @show "return file"
-#        return sendfile(200,filename)
-        # return HTTP.Response(
-        #    307,
-        #    ["Location" => "$(basedir)/analysis/$(analysisid)"];
-        #     body = "lala"
+
         return HTTP.Response(
             200,
             ["Content-Type" => "application/json"],
             body = JSON.json(Dict(
                 "status" => "done",
-                "url" => "$(basedir)/analysis/$(analysisid)"))
+                # relative URL to the DIVAnd gui
+                "url" => "$(version)/analysis/$(analysisid)"))
         )
 
     else
