@@ -84,8 +84,8 @@ function savebathnc(filename,b,xy)
 
     # Define variables
 
-    nclat[:] = x
-    nclon[:] = y
+    nclon[:] = x
+    nclat[:] = y
     ncbat[:] = b
 
     close(ds)
