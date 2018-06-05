@@ -3,27 +3,29 @@
 
 PORT=8002
 baseurl="http://127.0.0.1:${PORT}"
-tmpfile=/tmp/tmp_DIVAnd.$$
+tmpfile="/tmp/tmp_DIVAnd.$$"
+headerfile="/tmp/tmp_DIVAnd_header.$$"
+headerfile2="/tmp/tmp_DIVAnd_header2.$$"
 
 
 echo "Upload json configuration"
-curl --silent --dump-header header.txt --header "Content-Type: application/json" --data @test_analysis2.json "$baseurl/v1/analysis"
+curl --silent --dump-header "$headerfile" --header "Content-Type: application/json" --data @test_analysis2.json "$baseurl/v1/analysis"
 
 # change line endings
-tr -d '\15\32' < header.txt > header2.txt
+tr -d '\15\32' < "$headerfile" > "$headerfile2"
 
-LOCATION=$(awk  '/Location/ { print $2 }'  header2.txt)
+LOCATION=$(awk  '/Location/ { print $2 }'  "$headerfile2")
 echo "Extract queue location: $LOCATION"
 
-FILENAME=out.nc
+FILENAME="out.nc"
 
-rm "$FILENAME"
+rm -f "$FILENAME"
 
 while true; do
     #echo "Check if DIVAnd is done"
-    curl --silent "$baseurl$LOCATION" > tmpfile
-    #cat tmpfile
-    status=$(jq -r .status < tmpfile)
+    curl --silent "$baseurl$LOCATION" > "$tmpfile"
+    #cat $tmpfile
+    status=$(jq -r .status < "$tmpfile")
     echo "status $status"
 
     if [ "$status" == "done" ]; then
@@ -33,8 +35,12 @@ while true; do
     sleep 3
 done
 
-url=$(jq -r .url < tmpfile)
+url=$(jq -r .url < $tmpfile)
 
 curl --out "$FILENAME" --silent  "$baseurl$url"
 
-echo "The output is in $FILENAME"
+if [ -s "$FILENAME" ]; then
+    echo "SUCCESS"
+else
+    echo "FAIL"
+fi
