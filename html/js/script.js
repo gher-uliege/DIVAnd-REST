@@ -76,17 +76,17 @@ var SAMPLE_DATA = {
 
 function checkAnalysis(url,callback) {
     var xhr = new XMLHttpRequest();
-  
+
     xhr.open("GET", url, true);
     xhr.onreadystatechange = function () {
-    
+
         if (xhr.readyState === 4 && xhr.status === 200) {
             console.log("length",xhr.responseText.length,xhr.getResponseHeader('Cache-Control'));
             var jsonResponse = JSON.parse(xhr.responseText);
 
 
             if (jsonResponse.status === "pending") {
-                setTimeout(function(){ 
+                setTimeout(function(){
                     console.log("recheck");
                     checkAnalysis(url,callback);
                 }, 3000);
@@ -109,10 +109,12 @@ function checkAnalysis(url,callback) {
 /**
  * Represents a DIVAnd REST server
  * @constructor
- * @param {string} baseurl - The base URL of the REST API (without, e.g. /v1/analysis/...)
+ * @param {string} baseurl - The base URL of the REST API (without, e.g. v1/analysis/...)
  */
 function DIVAnd(baseurl) {
     this.baseurl = baseurl || "";
+    // remove trailing slash if present
+    this.baseurl = this.baseurl.replace(/\/$/, "");
 }
 
 /**
@@ -127,14 +129,14 @@ DIVAnd.prototype.analysis = function(data,callback) {
     var xhr = new XMLHttpRequest();
     var url = this.baseurl + "/v1/analysis";
     var that = this;
-    
+
     xhr.open("POST", url, true);
     xhr.setRequestHeader("Content-Type", "application/json");
     xhr.onreadystatechange = function () {
         if (xhr.readyState === 2 && xhr.status === 202) {
             console.log("xhr.getResponseHeader('Location')",xhr.getResponseHeader('Location'));
             callback("processing",{});
-             
+
             var newurl = that.baseurl + xhr.getResponseHeader('Location');
             checkAnalysis(newurl,callback);
         }
@@ -167,10 +169,10 @@ function callback(step,data) {
 function run() {
     var data = SAMPLE_DATA;
 
-    var baseurl = "";
+    var baseurl = window.location.href;
     var divand = new DIVAnd(baseurl);
-    
-    table = document.getElementById("DIVAnd_table");    
+
+    table = document.getElementById("DIVAnd_table");
     var data = extractform(table,SAMPLE_DATA);
 
     document.getElementById("status").innerHTML = "";
@@ -181,7 +183,7 @@ function run() {
 
 function appendform(table,data) {
     var tr, td, label, input;
-    
+
     for (var key in data) {
         if (data.hasOwnProperty(key)) {
             console.log(key + " -> " + data[key]);
@@ -210,25 +212,25 @@ function appendform(table,data) {
                 input = document.createElement("input");
                 input.setAttribute("type", "text");
                 input.setAttribute("name", key);
-                
+
                 if (data[key].constructor === Array) {
-                    value = data[key].join();                                       
+                    value = data[key].join();
                 }
                 else {
                     value = data[key];
                 }
-            
+
                 input.setAttribute("value", value);
-                
+
                 td.appendChild(input);
             }
             tr.appendChild(td);
-    
+
             table.appendChild(tr);
-            
+
         }
     }
-    
+
 }
 
 function parse(sampleval,value) {
@@ -237,19 +239,19 @@ function parse(sampleval,value) {
     }
     else if (typeof sampleval == "number") {
         return parseFloat(value);
-    }            
-    else if (sampleval.constructor === Array) {                
+    }
+    else if (sampleval.constructor === Array) {
         return value.split(",").map(function(elem) {
             console.log("elem",elem);
             return parse(sampleval[0],elem);
         });
     }
-    
+
 }
 
 function extractform(table,data) {
     var d = {};
-    
+
     for (var key in data) {
         if (data.hasOwnProperty(key)) {
             sampleval = data[key]
@@ -282,20 +284,20 @@ var table, data, data2;
 
     var table = document.getElementById("DIVAnd_table");
     data = SAMPLE_DATA;
-    appendform(table,data);    
-    
+    appendform(table,data);
+
     document.getElementById("run").onclick = run;
 
     data2 = extractform(table,data);
     console.log(data2);
-    
+
     table = document.getElementById("DIVAnd_table");
-    table.onkeyup = function(event)  { 
+    table.onkeyup = function(event)  {
         //console.log("this",this,event.target);
         var target = event.target;
         var name = target.name;
         var next = target.nextSibling || {};
-        
+
         if (target.value !== "" && target.getAttribute("data-type") === "list") {
             //console.log("nn",next);
 
@@ -312,6 +314,6 @@ var table, data, data2;
                 l[i].remove();
             }
         }
-    };  
-    
+    };
+
 })();
