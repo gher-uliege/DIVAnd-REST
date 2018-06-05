@@ -29,6 +29,8 @@ cd test
 ./test_curl.sh # takes some time (~ minutes)
 ```
 
+The analysis takes about 4 GB of RAM with the sample data. The first excution takes about 3 minutes and following requests about 1 minute for the sample data.
+
 Open http://localhost:8002/ in your web browser, for the web user interface.
 
 
