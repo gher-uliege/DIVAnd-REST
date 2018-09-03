@@ -35,16 +35,19 @@ RUN useradd -ms /bin/bash DIVAnd
 
 USER DIVAnd
 
-RUN julia --eval 'Pkg.init()'
+#RUN julia --eval 'using Pkg; Pkg.init()'
 
-RUN i=HTTP; julia --eval "Pkg.add(\"$i\"); using $i"
-RUN i=JSON; julia --eval "Pkg.add(\"$i\"); using $i"
-RUN i=NCDatasets; julia --eval "Pkg.add(\"$i\"); using $i"
-RUN i=PhysOcean; julia --eval "Pkg.add(\"$i\"); using $i"
+RUN i=HTTP; julia --eval "using Pkg; Pkg.add(\"$i\"); using $i"
+RUN i=JSON; julia --eval "using Pkg; Pkg.add(\"$i\"); using $i"
+RUN i=NCDatasets; julia --eval "using Pkg; Pkg.add(\"$i\"); using $i"
+#RUN i=PhysOcean; julia --eval "using Pkg; Pkg.add(\"$i\"); using $i"
+RUN i=PhysOcean; julia --eval "using Pkg; Pkg.clone(\"https://github.com/gher-ulg/$i.jl\"); Pkg.build(\"$i\"); using $i"
 
-RUN i=EzXML; julia --eval "Pkg.add(\"$i\"); using $i"
+RUN i=EzXML; julia --eval "using Pkg; Pkg.add(\"$i\"); using $i"
 
-RUN i=DIVAnd;    julia --eval "Pkg.clone(\"https://github.com/gher-ulg/$i.jl\"); Pkg.build(\"$i\"); using $i"
+RUN i=DIVAnd;    julia --eval "using Pkg; Pkg.clone(\"https://github.com/gher-ulg/$i.jl\"); Pkg.build(\"$i\"); using $i"
+
+RUN i=DataStructures; julia --eval "using Pkg; Pkg.add(\"$i\"); using $i"
 
 RUN mkdir /home/DIVAnd/DIVAnd-REST
 
