@@ -42,12 +42,7 @@ RUN i=JSON; julia --eval "Pkg.add(\"$i\"); using $i"
 RUN i=NCDatasets; julia --eval "Pkg.add(\"$i\"); using $i"
 RUN i=PhysOcean; julia --eval "Pkg.add(\"$i\"); using $i"
 
-# issue https://github.com/bicycle1885/EzXML.jl/issues/64
-
-RUN i=EzXML; julia --eval "Pkg.add(\"$i\")" || true
-RUN rm /home/DIVAnd/.julia/v0.6/EzXML/deps/usr/lib/libxml2.so
-RUN ln -s /usr/lib/x86_64-linux-gnu/libxml2.so.2.9.3 /home/DIVAnd/.julia/v0.6/EzXML/deps/usr/lib/libxml2.so
-RUN i=EzXML; julia --eval "Pkg.build(\"$i\"); using $i"
+RUN i=EzXML; julia --eval "Pkg.add(\"$i\"); using $i"
 
 RUN i=divand;    julia --eval "Pkg.clone(\"https://github.com/gher-ulg/$i.jl\"); Pkg.build(\"$i\"); using $i"
 
