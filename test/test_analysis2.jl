@@ -1,5 +1,5 @@
 import JSON
-import divand
+import DIVAnd
 using DataStructures
 
 data0 = OrderedDict(
