@@ -1,5 +1,5 @@
 # build as:
-# sudo docker build -t abarth/divand-rest .
+# sudo docker build -t abarth/DIVAnd-rest .
 # 
 #FROM ubuntu:18.04
 FROM ubuntu:16.04
@@ -44,7 +44,7 @@ RUN i=PhysOcean; julia --eval "Pkg.add(\"$i\"); using $i"
 
 RUN i=EzXML; julia --eval "Pkg.add(\"$i\"); using $i"
 
-RUN i=divand;    julia --eval "Pkg.clone(\"https://github.com/gher-ulg/$i.jl\"); Pkg.build(\"$i\"); using $i"
+RUN i=DIVAnd;    julia --eval "Pkg.clone(\"https://github.com/gher-ulg/$i.jl\"); Pkg.build(\"$i\"); using $i"
 
 RUN mkdir /home/DIVAnd/DIVAnd-REST
 

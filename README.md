@@ -41,3 +41,13 @@ Inspect logs with:
 ```
 docker logs divand_rest_container
 ```
+
+
+# Developpement
+
+*. start Julia and the DIVAnd server with `include(joinpath("src","DIVAndREST.jl"))` from the source directory
+*. start nginx:
+```
+/usr/sbin/nginx -c /home/DIVAnd/DIVAnd-REST/utils/nginx.conf
+```
+* run the test script

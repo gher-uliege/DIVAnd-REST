@@ -1,7 +1,7 @@
 using Test
 import HTTP
 import JSON
-import divand
+import DIVAnd
 using NCDatasets
 using DataStructures
 
@@ -119,11 +119,11 @@ function analysis_wrapper(data,filename)
     epsilon2 = data["epsilon2"]
 
     # fixme just take one
-    value,lon,lat,depth,time,ids = divand.loadobs(Float64,obsname,"Salinity")
+    value,lon,lat,depth,time,ids = DIVAnd.loadobs(Float64,obsname,"Salinity")
     depthr = data["depth"]
 
 
-    divand.checkobs((lon,lat,depth,time),value,ids)
+    DIVAnd.checkobs((lon,lat,depth,time),value,ids)
 
     sz = (length(lonr),length(latr),length(depthr))
 
@@ -143,8 +143,8 @@ function analysis_wrapper(data,filename)
     monthlist = data["monthlist"]
 
 
-    #TS = divand.TimeSelectorYW(years,year_window,monthlist)
-    TS = divand.TimeSelectorYearListMonthList(years,monthlist)
+    #TS = DIVAnd.TimeSelectorYW(years,year_window,monthlist)
+    TS = DIVAnd.TimeSelectorYearListMonthList(years,monthlist)
 
     # use all keys with the metadata_ prefix
     metadata = Dict((replace(k,r"^metadata_",""),v)
@@ -153,7 +153,7 @@ function analysis_wrapper(data,filename)
 
     ncglobalattrib,ncvarattrib =
         if length(metadata) > 0
-            divand.SDNMetadata(metadata,filename,varname,lonr,latr)
+            DIVAnd.SDNMetadata(metadata,filename,varname,lonr,latr)
         else
             Dict{String,String}(),Dict{String,String}()
         end
@@ -164,7 +164,7 @@ function analysis_wrapper(data,filename)
 
     memtofit = 10
 
-    @time res = divand.diva3d(
+    @time res = DIVAnd.diva3d(
         (lonr,latr,depthr,TS),
         (lon,lat,depth,time),
         value,
@@ -178,7 +178,7 @@ function analysis_wrapper(data,filename)
         memtofit = memtofit
     )
 
-    divand.saveobs(filename,(lon,lat,depth,time),ids)
+    DIVAnd.saveobs(filename,(lon,lat,depth,time),ids)
 end
 
 
@@ -225,7 +225,7 @@ function bathymetry(req::HTTP.Request)
 
     bathname,isglobal = bathdatasets[dataset]
 
-    xi,yi,bath = divand.load_bath(bathname,isglobal,minlon:reslon:maxlon,minlat:reslat:maxlat)
+    xi,yi,bath = DIVAnd.load_bath(bathname,isglobal,minlon:reslon:maxlon,minlat:reslat:maxlat)
 
     @show minlon,minlat,maxlon,maxlat
     @show reslon,reslat
