@@ -4,6 +4,8 @@ import JSON
 import DIVAnd
 using NCDatasets
 using DataStructures
+using Random
+using Statistics
 
 include("webdav.jl")
 
@@ -42,7 +44,6 @@ const datalist = Dict{String,String}(
    strbbox = encodebbox(bbox)
    minlon,minlat,maxlon,maxlat
 """
-
 encodebbox(bbox) = join(bbox,",")
 decodebbox(strbbox) = parse.(Float64,split(strbbox,","))
 
@@ -104,12 +105,14 @@ function resolvedata(url)
 end
 
 function analysis_wrapper(data,filename)
+    @debug "analysis_wrapper"
     minlon,minlat,maxlon,maxlat = data["bbox"]
     Δlon,Δlat = data["resolution"]
 
     lonr = minlon:Δlon:maxlon
     latr = minlat:Δlat:maxlat
 
+    @debug "analysis_wrapper1"
     bathname = resolvedata(data["bathymetry"])
     bathisglobal = get(data,"bathymetryisglobal",true)
 
@@ -119,11 +122,12 @@ function analysis_wrapper(data,filename)
     epsilon2 = data["epsilon2"]
 
     # fixme just take one
-    value,lon,lat,depth,time,ids = DIVAnd.loadobs(Float64,obsname,"Salinity")
+    value,lon,lat,depth,obstime,ids = DIVAnd.loadobs(Float64,obsname,varname)
     depthr = data["depth"]
 
 
-    DIVAnd.checkobs((lon,lat,depth,time),value,ids)
+    @debug "analysis_wrapper2"
+    DIVAnd.checkobs((lon,lat,depth,obstime),value,ids)
 
     sz = (length(lonr),length(latr),length(depthr))
 
@@ -147,7 +151,7 @@ function analysis_wrapper(data,filename)
     TS = DIVAnd.TimeSelectorYearListMonthList(years,monthlist)
 
     # use all keys with the metadata_ prefix
-    metadata = Dict((replace(k,r"^metadata_",""),v)
+    metadata = Dict((replace(k,r"^metadata_" => ""),v)
                     for (k,v) in data if startswith(k,"metadata_"))
     @show metadata
 
@@ -166,7 +170,7 @@ function analysis_wrapper(data,filename)
 
     @time res = DIVAnd.diva3d(
         (lonr,latr,depthr,TS),
-        (lon,lat,depth,time),
+        (lon,lat,depth,obstime),
         value,
         (lenx,leny,lenz),
         epsilon2,
@@ -178,7 +182,7 @@ function analysis_wrapper(data,filename)
         memtofit = memtofit
     )
 
-    DIVAnd.saveobs(filename,(lon,lat,depth,time),ids)
+    DIVAnd.saveobs(filename,(lon,lat,depth,obstime),ids)
 end
 
 
@@ -312,7 +316,7 @@ function queue(req::HTTP.Request)
     path = HTTP.URI(req.target).path
     analysisid = split(path,"$(basedir)/queue/")[2]
     filename = analysisname(analysisid)
-    const retry = 4
+    retry = 4
     if isfile(filename)
         @show "return file"
 
@@ -374,8 +378,8 @@ HTTP.register!(router, "GET",  "$basedir/queue",HTTP.HandlerFunction(queue))
 HTTP.register!(router, "POST", "$basedir/upload",HTTP.HandlerFunction(upload))
 
 server = HTTP.Servers.Server(router)
-#task = @async HTTP.serve(server, ip"127.0.0.1", port; verbose=false)
-task = @async HTTP.serve(server, ip"0.0.0.0", port; verbose=false)
+#task = @async HTTP.serve(server, HTTP.ip"127.0.0.1", port; verbose=false)
+task = @async HTTP.serve(server, HTTP.ip"0.0.0.0", port; verbose=false)
 
 # e.g.
 # "http://127.0.0.1:8001/v1"

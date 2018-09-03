@@ -25,22 +25,22 @@ while true
     @show URL2
     @show headers
     data = JSON.parse(String(resp.body))
-    
+
     if get(data,"status","undefined") == "done"
         URL_analysis = baseurl * data["url"]
         resp = HTTP.request("GET",URL_analysis)
         break
     end
-        
 
-    seconds = 
+
+    seconds =
         if haskey(headers,"Cache-Control")
             maxage,strseconds = split(headers["Cache-Control"],"=")
             parse(Float64,strseconds)
         else
             1
         end
-    
+
     println("retry in $(seconds) seconds")
     sleep(seconds)
 end

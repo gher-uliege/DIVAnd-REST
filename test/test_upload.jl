@@ -7,7 +7,7 @@ password =
     if haskey(ENV,"WEBDAV_PASSWORD")
         ENV["WEBDAV_PASSWORD"]
     else
-        readstring(open(expanduser("~/.b2drop_password")))
+        read(expanduser("~/.b2drop_password"),String)
     end
 
 data = OrderedDict(

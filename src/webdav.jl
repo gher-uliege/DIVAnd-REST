@@ -3,10 +3,11 @@ import HTTP
 using EzXML
 using Base.Filesystem: readdir, mkdir, isdir, isfile
 using Base: open
+using Base64
 
 namespace = Dict("d" => "DAV:")
 
-immutable WebDAV
+struct WebDAV
     url
     headers
 end
@@ -55,7 +56,7 @@ function Base.open(s::WebDAV,remotepath::AbstractString,
                    mode::AbstractString = "r")
 
     if mode == "r"
-        io = Base.BufferStream()        
+        io = Base.BufferStream()
         r = HTTP.request("GET", s.url * "/" * remotepath,s.headers,response_stream = io)
         return io
     else
@@ -75,7 +76,7 @@ function Base.open(f::Function,s::WebDAV,remotepath::AbstractString,
     elseif mode == "w"
         r = HTTP.open("PUT", s.url * "/" * remotepath,s.headers) do io
             f(io)
-        end        
+        end
     else
         error("unsupported mode $(mode)")
     end
@@ -95,11 +96,11 @@ function Base.Filesystem.readdir(s,dir::AbstractString=".")
     end
 
     path = HTTP.URI(s.url).path
-    response = find(root(doc),"d:response",namespace)
-    list = Vector{String}(length(response))
+    response = findall("d:response",root(doc),namespace)
+    list = Vector{String}(undef,length(response))
     for i = 1:length(response)
-        url = nodecontent(findfirst(response[i],"d:href"))
-        
+        url = nodecontent(findfirst("d:href",response[i]))
+
         if startswith(url,path)
             list[i] = url[length(path)+1:end]
         else
@@ -127,8 +128,8 @@ function Base.Filesystem.isdir(s,dir::AbstractString)
     if status == 404
         return false
     end
-    
-    resourcetype = find(root(doc),"d:response[1]/d:propstat/d:prop/d:resourcetype/*",namespace)
+
+    resourcetype = findall("d:response[1]/d:propstat/d:prop/d:resourcetype/*",root(doc),namespace)
 
     return "collection" in nodename.(resourcetype)
 end
@@ -141,8 +142,8 @@ function Base.Filesystem.isfile(s,dir::AbstractString)
     if status == 404
         return false
     end
-    
-    resourcetype = find(root(doc),"d:response[1]/d:propstat/d:prop/d:resourcetype/*",namespace)
+
+    resourcetype = findall("d:response[1]/d:propstat/d:prop/d:resourcetype/*",root(doc),namespace)
 
     return !("collection" in nodename.(resourcetype))
 end

@@ -1,15 +1,15 @@
-using Base.Test
+using Test
 import HTTP
-
-
+using Random
+using Base64
 
 url = "https://b2drop.eudat.eu/remote.php/webdav"
 username = "a.barth@ulg.ac.be";
 password =
-    if haskey(ENV,"WEBDAV_PASSWORD"]
+    if haskey(ENV,"WEBDAV_PASSWORD")
         ENV["WEBDAV_PASSWORD"]
     else
-        readstring(open(expanduser("~/.b2drop_password")))
+        read(expanduser("~/.b2drop_password"),String)
     end
 
 userinfo = username * ":" * password;
@@ -26,7 +26,7 @@ r = download(s, "mytest_julia6.txt")
 download(s, "mytest_julia6.txt","/tmp/mytest")
 
 open(s, "mytest_julia6.txt","r") do io
-    @show readstring(io)
+    @show read(io,String)
 end
 
 
@@ -36,7 +36,7 @@ end
 
 open(s, "mytest_julia7.txt","r")
 
-@test readstring(open(s, "mytest_julia7.txt")) == "blabla"
+@test read(open(s, "mytest_julia7.txt"),String) == "blabla"
 
 @show readdir(s,"/")
 
