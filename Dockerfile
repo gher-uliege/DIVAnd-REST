@@ -45,7 +45,7 @@ RUN i=PhysOcean; julia --eval "using Pkg; Pkg.clone(\"https://github.com/gher-ul
 
 RUN i=EzXML; julia --eval "using Pkg; Pkg.add(\"$i\"); using $i"
 
-RUN i=DIVAnd;    julia --eval "using Pkg; Pkg.clone(\"https://github.com/gher-ulg/$i.jl\"); Pkg.build(\"$i\"); using $i"
+RUN i=DIVAnd; julia --eval "using Pkg; Pkg.clone(\"https://github.com/gher-ulg/$i.jl\"); Pkg.build(\"$i\"); using $i"
 
 RUN i=DataStructures; julia --eval "using Pkg; Pkg.add(\"$i\"); using $i"
 
@@ -61,5 +61,6 @@ WORKDIR /home/DIVAnd/DIVAnd-REST/
 #RUN wget -O /home/DIVAnd/DIVAnd-REST/data/WOD-Salinity.nc 'http://b2drop.eudat.eu/s/UsF3RyU3xB1UM2o/download' 
 
 USER root
+RUN chown DIVAnd /home/DIVAnd/DIVAnd-REST/test/test_analysis2.json /home/DIVAnd/DIVAnd-REST/test/test_bathymetry.json
 
 CMD supervisord --nodaemon --configuration /home/DIVAnd/DIVAnd-REST/utils/supervisor-app.conf

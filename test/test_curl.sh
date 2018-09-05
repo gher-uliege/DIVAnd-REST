@@ -17,7 +17,7 @@ tr -d '\15\32' < "$headerfile" > "$headerfile2"
 LOCATION=$(awk  '/Location/ { print $2 }'  "$headerfile2")
 echo "Extract queue location: $LOCATION"
 
-FILENAME="out.nc"
+FILENAME=$(mktemp /tmp/DIVAnd-rest-analysis.XXXXXX)
 
 rm -f "$FILENAME"
 
@@ -44,3 +44,6 @@ if [ -s "$FILENAME" ]; then
 else
     echo "FAIL"
 fi
+
+
+rm -f "$FILENAME"
