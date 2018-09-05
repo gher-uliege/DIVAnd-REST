@@ -1,3 +1,5 @@
+[![Build Status](https://travis-ci.org/gher-ulg/DIVAnd-REST.svg?branch=master)](https://travis-ci.org/gher-ulg/DIVAnd-REST)
+
 
 # Install with Docker
 

@@ -1,6 +1,6 @@
 # build as:
 # sudo docker build -t abarth/DIVAnd-rest .
-# 
+#
 #FROM ubuntu:18.04
 FROM ubuntu:16.04
 
@@ -14,7 +14,7 @@ USER root
 RUN apt-get update
 RUN apt-get install -y libnetcdf-dev netcdf-bin
 RUN apt-get install -y unzip
-RUN apt-get install -y ca-certificates curl libnlopt0 make gcc 
+RUN apt-get install -y ca-certificates curl libnlopt0 make gcc
 RUN apt-get install -y wget
 RUN apt-get install -y emacs-nox
 RUN apt-get install -y nginx supervisor
@@ -57,10 +57,10 @@ ADD . /home/DIVAnd/DIVAnd-REST
 WORKDIR /home/DIVAnd/DIVAnd-REST/
 
 
-#RUN wget -O /home/DIVAnd/DIVAnd-REST/data/gebco_30sec_16.nc https://b2drop.eudat.eu/s/o0vinoQutAC7eb0/download 
-#RUN wget -O /home/DIVAnd/DIVAnd-REST/data/WOD-Salinity.nc 'http://b2drop.eudat.eu/s/UsF3RyU3xB1UM2o/download' 
+#RUN wget -O /home/DIVAnd/DIVAnd-REST/data/gebco_30sec_16.nc https://b2drop.eudat.eu/s/o0vinoQutAC7eb0/download
+#RUN wget -O /home/DIVAnd/DIVAnd-REST/data/WOD-Salinity.nc 'http://b2drop.eudat.eu/s/UsF3RyU3xB1UM2o/download'
 
 USER root
-RUN chown DIVAnd /home/DIVAnd/DIVAnd-REST/test/test_analysis2.json /home/DIVAnd/DIVAnd-REST/test/test_bathymetry.json
+RUN chown DIVAnd /home/DIVAnd/DIVAnd-REST/test/test_analysis2.json
 
 CMD supervisord --nodaemon --configuration /home/DIVAnd/DIVAnd-REST/utils/supervisor-app.conf
