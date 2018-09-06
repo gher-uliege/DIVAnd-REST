@@ -57,8 +57,8 @@ ADD . /home/DIVAnd/DIVAnd-REST
 WORKDIR /home/DIVAnd/DIVAnd-REST/
 
 
-#RUN wget -O /home/DIVAnd/DIVAnd-REST/data/gebco_30sec_16.nc https://b2drop.eudat.eu/s/o0vinoQutAC7eb0/download
-#RUN wget -O /home/DIVAnd/DIVAnd-REST/data/WOD-Salinity.nc 'http://b2drop.eudat.eu/s/UsF3RyU3xB1UM2o/download'
+RUN wget --no-clobber -O /home/DIVAnd/DIVAnd-REST/data/gebco_30sec_16.nc https://b2drop.eudat.eu/s/o0vinoQutAC7eb0/download
+RUN wget --no-clobber -O /home/DIVAnd/DIVAnd-REST/data/WOD-Salinity.nc 'http://b2drop.eudat.eu/s/UsF3RyU3xB1UM2o/download'
 
 USER root
 RUN chown DIVAnd /home/DIVAnd/DIVAnd-REST/test/test_analysis2.json
