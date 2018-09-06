@@ -6,3 +6,10 @@ fi
 if ! [ -f WOD-Salinity.nc ]; then
     wget -O WOD-Salinity.nc 'http://b2drop.eudat.eu/s/UsF3RyU3xB1UM2o/download'
 fi
+
+if ! [ -f sample-file.nc ]; then
+    wget -O sample-file.nc 'https://b2drop.eudat.eu/s/Sk4zTDTi3tgmetR/download'
+fi
+
+
+

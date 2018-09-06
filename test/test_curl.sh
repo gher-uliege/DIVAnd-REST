@@ -40,7 +40,11 @@ done
 
 url=$(jq -r .url < $tmpfile)
 
-curl --out "$FILENAME" --silent  "$baseurl$url"
+fullurl="$baseurl/$url"
+echo $fullurl
+curl --out "$FILENAME" --silent  "$fullurl"
+
+ls -l  "$FILENAME"
 
 if [ -s "$FILENAME" ]; then
     echo "SUCCESS"

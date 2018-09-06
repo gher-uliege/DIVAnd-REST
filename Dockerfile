@@ -19,6 +19,7 @@ RUN apt-get install -y wget
 RUN apt-get install -y emacs-nox
 RUN apt-get install -y nginx supervisor
 RUN apt-get install -y jq
+RUN apt-get install -y git
 
 RUN wget -O /usr/share/emacs/site-lisp/julia-mode.el https://raw.githubusercontent.com/JuliaEditorSupport/julia-emacs/master/julia-mode.el
 
@@ -46,7 +47,8 @@ RUN i=PhysOcean; julia --eval "using Pkg; Pkg.clone(\"https://github.com/gher-ul
 RUN i=EzXML; julia --eval "using Pkg; Pkg.add(\"$i\"); using $i"
 
 RUN i=DIVAnd; julia --eval "using Pkg; Pkg.clone(\"https://github.com/gher-ulg/$i.jl\"); Pkg.build(\"$i\"); using $i"
-
+RUN cd ~/.julia/dev/DIVAnd/;  git checkout Alex; git pull
+      
 RUN i=DataStructures; julia --eval "using Pkg; Pkg.add(\"$i\"); using $i"
 
 RUN mkdir /home/DIVAnd/DIVAnd-REST
