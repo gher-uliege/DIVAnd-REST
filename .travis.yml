@@ -7,7 +7,7 @@ os:
 notifications:
   email: false
 before_install:
-  - sudo docker build -t abarth/divand-rest .
+  - sudo docker build -t abarth/divand_rest .
   - docker run --detach --name=divand_rest_container -it -p 8002:8002 abarth/divand_rest
   - docker ps -a
 script:
