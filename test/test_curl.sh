@@ -29,7 +29,8 @@ while true; do
     #cat $tmpfile
     status=$(jq -r .status < "$tmpfile")
     echo "status $status"
-
+    docker logs divand_rest_container
+    
     if [ "$status" == "done" ]; then
         echo "$ok"
         break
