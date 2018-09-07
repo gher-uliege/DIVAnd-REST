@@ -14,7 +14,7 @@ script:
   - sleep 25; ./test/test_bathymetry_curl.sh
   - ./test/test_curl.sh
 after_success:
-  - if [ "TRAVIS_BRANCH" == master ]; then
-       echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin;
+  - if [ "$TRAVIS_BRANCH" == master ]; then
+       echo "$DOCKER_PASSWORD" | docker login --username "$DOCKER_USERNAME" --password-stdin;
        docker push abarth/divand_rest;
     fi
