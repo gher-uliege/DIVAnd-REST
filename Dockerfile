@@ -49,6 +49,9 @@ RUN i=DIVAnd; julia --eval "using Pkg; Pkg.clone(\"https://github.com/gher-ulg/$
 
 RUN i=DataStructures; julia --eval "using Pkg; Pkg.add(\"$i\"); using $i"
 
+RUN i=PyPlot; julia --eval "using Pkg; Pkg.add(\"$i\"); using $i"
+RUN i=OceanPlot; julia --eval "using Pkg; Pkg.add(\"https://github.com/gher-ulg/$i.jl\"); Pkg.build(\"$i\"); using $i"
+
 RUN mkdir /home/DIVAnd/DIVAnd-REST
 
 
