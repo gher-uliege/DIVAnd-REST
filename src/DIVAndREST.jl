@@ -29,7 +29,8 @@ const external_basedir = "$(EXTERNAL_MOUNTPOINT)$(version)"
 
 const idlength = 24
 
-
+DIVAnd_tasks = Dict{String,Any}()
+DIVAnd_tasks_status = Dict{String,Any}()
 
 const bathdatasets = Dict{String,Tuple{String,Bool}}(
     "GEBCO" => ("data/gebco_30sec_16.nc",true))
@@ -121,7 +122,7 @@ function resolvedata(url)
     end
 end
 
-function analysis_wrapper(data,filename)
+function analysis_wrapper(data,filename,channel)
     @debug "analysis_wrapper"
     minlon,minlat,maxlon,maxlat = data["bbox"]
     Δlon,Δlat = data["resolution"]
@@ -173,7 +174,9 @@ function analysis_wrapper(data,filename)
     @show metadata
 
     ncglobalattrib,ncvarattrib =
-        if length(metadata) > 0
+        #debug
+        #if length(metadata) > 0
+        if false
             DIVAnd.SDNMetadata(metadata,filename,varname,lonr,latr)
         else
             Dict{String,String}(),Dict{String,String}()
@@ -184,6 +187,10 @@ function analysis_wrapper(data,filename)
     end
 
     memtofit = 10
+    function plotres(timeindex,sel,fit,erri)
+        @show timeindex
+        push!(channel,"time index $(timeindex)")
+    end
 
     @time res = DIVAnd.diva3d(
         (lonr,latr,depthr,TS),
@@ -196,7 +203,8 @@ function analysis_wrapper(data,filename)
         bathisglobal = bathisglobal,
         ncvarattrib = ncvarattrib,
         ncglobalattrib = ncglobalattrib,
-        memtofit = memtofit
+        memtofit = memtofit,
+        plotres = plotres
     )
 
     DIVAnd.saveobs(filename,(lon,lat,depth,obstime),ids)
@@ -292,9 +300,12 @@ function analysis(req::HTTP.Request)
 
         @show path
         analysisid = randstring(idlength)
-        analysisid = "12345"
+        #analysisid = "12345"
+
+        channel = Channel(Inf)
 
         @async begin
+            push!(channel,"a")
             println("request analysis")
             fname = analysisname(analysisid)
             if isfile(fname)
@@ -302,14 +313,19 @@ function analysis(req::HTTP.Request)
             end
             #sleep(5.0)
 
+            push!(channel,"b")
             println("request analysis 2")
-            analysis_wrapper(data,fname * ".temp")
+            analysis_wrapper(data,fname * ".temp",channel)
             println("request analysis 3")
             mv(fname * ".temp",fname)
             #f = open(fname,"w")
             #write(f,"lala123")
             #close(f)
+            push!(channel,"done")
         end
+
+        DIVAnd_tasks[analysisid] = channel
+        DIVAnd_tasks_status[analysisid] = "started"
         println("request analysis 4")
 
         # analysis in progress
@@ -332,6 +348,12 @@ end
 function queue(req::HTTP.Request)
     path = HTTP.URI(req.target).path
     analysisid = split(path,"$(basedir)/queue/")[2]
+
+    @show DIVAnd_tasks[analysisid], isready(DIVAnd_tasks[analysisid])
+    if isready(DIVAnd_tasks[analysisid])
+        DIVAnd_tasks_status[analysisid] = take!(DIVAnd_tasks[analysisid])
+    end
+
     filename = analysisname(analysisid)
     retry = 4
     if isfile(filename)
@@ -352,7 +374,8 @@ function queue(req::HTTP.Request)
             ["Cache-Control" => "max-age=$(retry)",
              "Content-Type" => "application/json"],
             body = JSON.json(Dict(
-               "status" => "pending")))
+               "status" => "pending",
+               "message" => DIVAnd_tasks_status[analysisid])))
     end
 end
 
