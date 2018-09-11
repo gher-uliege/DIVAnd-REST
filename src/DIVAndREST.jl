@@ -6,8 +6,8 @@ using NCDatasets
 using DataStructures
 using Random
 using Statistics
-using OceanPlot
 using PyPlot
+using OceanPlot
 
 include("webdav.jl")
 
@@ -17,6 +17,7 @@ const EXTERNAL_PORT = parse(Int,get(ENV,"DIVAND_EXTERNAL_PORT","8002"))
 const port = parse(Int,get(ENV,"DIVAND_PORT","8001"))
 const workdir = get(ENV,"DIVAND_WORKDIR",tempdir())
 const baseurl = get(ENV,"DIVAND_EXTERNAL_BASEURL","http://$(EXTERNAL_HOST):$(EXTERNAL_PORT)/")
+const hasnetwork = get(ENV,"DIVAND_HASNETWORK","true") == "true"
 
 # Version of the REST API
 const version = "v1"
@@ -171,12 +172,10 @@ function analysis_wrapper(data,filename,channel)
     # use all keys with the metadata_ prefix
     metadata = Dict((replace(k,r"^metadata_" => ""),v)
                     for (k,v) in data if startswith(k,"metadata_"))
-    @show metadata
+    @show metadata, hasnetwork
 
     ncglobalattrib,ncvarattrib =
-        #debug
-        #if length(metadata) > 0
-        if false
+        if (length(metadata) > 0) && hasnetwork
             DIVAnd.SDNMetadata(metadata,filename,varname,lonr,latr)
         else
             Dict{String,String}(),Dict{String,String}()
