@@ -2,14 +2,15 @@
    "observations": "sampledata:WOD-Salinity",
    "varname": "Salinity",
    "bbox": [
-      -3.0,
+      3.0,
       42.0,
       12.0,
       44.0
    ],
    "depth": [
       0,
-      20
+      20,
+      50
    ],
    "len": [
       100000.0,
