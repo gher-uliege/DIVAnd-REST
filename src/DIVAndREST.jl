@@ -6,6 +6,8 @@ using NCDatasets
 using DataStructures
 using Random
 using Statistics
+using OceanPlot
+using PyPlot
 
 include("webdav.jl")
 
@@ -95,10 +97,25 @@ end
 
 function resolvedata(url)
     if startswith(url,"sampledata:")
-        return datalist[split(url,"data:")[2]]
+        name = split(url,"data:")[2]
+        return get(datalist,name,nothing)
     elseif (startswith(url,"http:") || startswith(url,"https:") ||
             startswith(url,"ftp:"))
-        return download(url)
+
+        tmpfname = joinpath(workdir,string(hash(url)))
+
+        if isfile(tmpfname)
+            @debug "use $(url) from cache $(tmpfname)"
+            return tmpfname
+        else
+            try
+                Base.download(url,tmpfname)
+                return tmpfname
+            catch
+                @info "download failed: $(url)"
+                return nothing
+            end
+        end
     else
         error("URI scheme is not allowed $(url)")
     end
@@ -275,7 +292,7 @@ function analysis(req::HTTP.Request)
 
         @show path
         analysisid = randstring(idlength)
-        #analysisid = "12345"
+        analysisid = "12345"
 
         @async begin
             println("request analysis")
@@ -368,6 +385,60 @@ function upload(req::HTTP.Request)
     return HTTP.Response(200,"move")
 end
 
+function route!(fun,router,method,url)
+    HTTP.register!(router, method, url, HTTP.HandlerFunction(fun))
+end
+
+function listvarnames(data)
+    obsname = resolvedata(data["observations"])
+    Dataset(obsname) do ds
+        varnames = filter(v -> (!(get(ds[v].attrib,"standard_name","") in ["longitude","latitude","depth","time"])
+                                && (v != "obsid") ),
+                          keys(ds))
+        @debug "varnames $(varnames)"
+        return JSON.json("varnames" => varnames)
+    end
+end
+
+function http_listvarnames(req::HTTP.Request)
+    data =
+        if req.method == "POST"
+            JSON.parse(
+                HTTP.payload(req,String);
+                dicttype=DataStructures.OrderedDict)
+        else
+            HTTP.queryparams(HTTP.URI(req.target))
+        end
+
+    @debug "data $(data)"
+
+    return HTTP.Response(
+        200,
+        ["Content-Type" => "application/json"],
+        body = listvarnames(data))
+end
+
+
+function preview(req::HTTP.Request)
+    path = HTTP.URI(req.target).path
+    analysisid,varname,zindexstr,tindexstr = split(split(path,"$(basedir)/preview/")[2],"/")
+
+    zindex = parse(Int,zindexstr)
+    tindex = parse(Int,tindexstr)
+    fname = analysisname(analysisid)
+
+    @show fname
+    OceanPlot.hview(fname,String(varname),:,:,zindex,tindex)
+    buf = IOBuffer()
+    savefig(buf; format = "png")
+
+    return HTTP.Response(
+        200,
+        ["Content-Type" => "image/png"],
+        body = take!(buf))
+end
+
+
 HTTP.register!(router, "GET",  "$basedir/bathymetry",HTTP.HandlerFunction(bathymetry))
 
 HTTP.register!(router, "POST", "$basedir/analysis",HTTP.HandlerFunction(analysis))
@@ -376,6 +447,13 @@ HTTP.register!(router, "OPTIONS",  "$basedir/analysis",HTTP.HandlerFunction(opti
 
 HTTP.register!(router, "GET",  "$basedir/queue",HTTP.HandlerFunction(queue))
 HTTP.register!(router, "POST", "$basedir/upload",HTTP.HandlerFunction(upload))
+
+
+HTTP.register!(router, "POST", "$basedir/listvarnames",
+               HTTP.HandlerFunction(http_listvarnames))
+
+
+HTTP.register!(router, "GET",  "$basedir/preview",HTTP.HandlerFunction(preview))
 
 server = HTTP.Servers.Server(router)
 #task = @async HTTP.serve(server, HTTP.ip"127.0.0.1", port; verbose=false)

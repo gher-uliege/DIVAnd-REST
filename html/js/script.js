@@ -1,15 +1,21 @@
+var baseurl = window.location.href;
+var divand = new DIVAnd(baseurl);
+
+
 var SAMPLE_DATA = {
    "observations": "sampledata:WOD-Salinity",
+   //"observations": "https://b2drop.eudat.eu/s/UsF3RyU3xB1UM2o/download",
    "varname": "Salinity",
    "bbox": [
-      -3.0,
+      3.0,
       42.0,
       12.0,
-      44.0
+      44.5
    ],
    "depth": [
-      0,
-      20
+       0,
+       20,
+       50
    ],
    "len": [
       100000.0,
@@ -17,12 +23,12 @@ var SAMPLE_DATA = {
    ],
    "epsilon2": 1.0,
    "resolution": [
-      0.5,
-      0.5
+      0.05,
+      0.05
    ],
    "years": [
-      1993,
-      1993
+      1900,
+      2018
    ],
    "monthlist": [
       [
@@ -154,6 +160,23 @@ DIVAnd.prototype.analysis = function(data,callback) {
  */
 
 
+DIVAnd.prototype.listvarnames = function(observations,callback) {
+    var xhr = new XMLHttpRequest();
+    var url = this.baseurl + "/v1/listvarnames";
+    var that = this;
+
+    xhr.open("POST", url, true);
+    xhr.setRequestHeader("Content-Type", "application/json");
+    xhr.onreadystatechange = function () {
+        if (xhr.readyState === 4 && xhr.status === 200) {
+            var output = JSON.parse(xhr.responseText);
+            console.log("resp ",output)
+            callback(output);
+        }
+    };
+    xhr.send(JSON.stringify({"observations": observations}));
+}
+
 function callback(step,data) {
     console.log("step",step,data);
     document.getElementById("status").innerHTML = step;
@@ -165,6 +188,36 @@ function callback(step,data) {
     }
 }
 
+function update_varnames(varnames) {
+    var parent = document.querySelector("input[name=varname]").parentNode;
+    parent.removeChild(parent.firstElementChild);
+
+    var select = document.createElement("select");
+    select.setAttribute("name", "varname");
+
+    //varnames = ["Salinity"]
+
+    for (var i = 0; i < varnames.length; i++) {
+
+        var opt = document.createElement("option");
+        opt.appendChild(document.createTextNode(varnames[i]));
+        opt.value = varnames[i];
+        select.append(opt)
+    }
+    
+    parent.appendChild(select);
+
+}
+
+
+function load_varnames() {
+    var observations = document.querySelector("input[name=observations]").value;
+
+    divand.listvarnames(observations,function(resp) {
+        console.log(resp.varnames);
+        update_varnames(resp.varnames);
+    })
+}
 
 function run() {
     var data = SAMPLE_DATA;
@@ -275,6 +328,19 @@ function extractform(table,data) {
     return d;
 }
 
+
+function test() {
+    var baseurl = window.location.href;
+    var divand = new DIVAnd(baseurl);
+
+    var varnames;
+    divand.listvarnames("sampledata:WOD-Salinity",function(v) { console.log(v);  })
+
+
+
+}
+
+
 var table, data, data2;
 
 (function() {
@@ -315,5 +381,10 @@ var table, data, data2;
             }
         }
     };
+
+
+    load_varnames();
+    document.querySelector("input[name=observations]").onchange = load_varnames;
+
 
 })();
