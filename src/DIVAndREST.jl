@@ -6,8 +6,8 @@ using NCDatasets
 using DataStructures
 using Random
 using Statistics
-using OceanPlot
 using PyPlot
+using OceanPlot
 
 include("webdav.jl")
 
