@@ -5,8 +5,8 @@ using DataStructures
 data0 = OrderedDict(
     "observations" => "sampledata:WOD-Salinity",
     "varname" => "Salinity",
-    "bbox" => [-3.,42.,12.,44.],  # minlon,minlat,maxlon,maxlat
-    "depth" => [0,20],
+    "bbox" => [3.,42.,12.,44.],  # minlon,minlat,maxlon,maxlat
+    "depth" => [0,20,50],
     "len" => [100e3,100e3],
     "epsilon2" => 1.,
     "resolution" => [.5,.5],
