@@ -12,19 +12,25 @@
     <h1>DIVAnd REST API</h1>
     <table id="DIVAnd_table">
     </table>
-    <button id="run">Run DIVAnd</button>
-    <script src="js/script.js"></script>
-    <div id="status"></div>
-    <a id="result" style="display: none" href="#">Download results</a>
-
-    <h1>Preview</h1>
-    <div>
-      <div>
-      zindex<select id="zindex" ></select>
-      tindex<select id="tindex" ></select>
-      <input type="checkbox" id="update_preview" checked>Auto. update
-      </div>
-      <img id="preview" style="width: 640px; height: 480px"/>
+    <h2 class="metadata collabse">Metadata</h2>
+    <table id="DIVAnd_table_metadata">
+    </table>
+    <div id="pannel">
+      <button id="run">Run DIVAnd</button>
+      <div id="status"></div>
+      <a id="result" style="display: none" href="#">Download results</a>
     </div>
+    <div style="display: none">
+      <h1>Preview</h1>
+      <div>
+        <div>
+          zindex<select id="zindex" ></select>
+          tindex<select id="tindex" ></select>
+          <input type="checkbox" id="update_preview" checked>Auto. update
+        </div>
+        <img id="preview" style="width: 640px; height: 480px"/>
+      </div>
+    </div>
+    <script src="js/script.js"></script>
   </body>
 </html>

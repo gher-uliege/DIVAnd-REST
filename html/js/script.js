@@ -114,7 +114,7 @@ var SAMPLE_DATA = {
    "bathymetry": "sampledata:gebco_30sec_16",
    "metadata_project": "SeaDataCloud",
    "metadata_institution_urn": "SDN:EDMO::1579",
-   "metadata_production": "Diva group. E-mails: a.barth@ulg.ac.be, swatelet@ulg.ac.be",
+   "metadata_production": "...",
    "metadata_Author_e-mail": [
       "Your Name1 <name1@example.com>",
       "Other Name <name2@example.com>"
@@ -260,6 +260,7 @@ function callback(request,data) {
 
         var lastmessage = data.message[data.message.length-1];
 
+        /*
         if (lastmessage) {
             if (lastmessage.timeindex !== undefined) {
                 var timeindex = lastmessage.timeindex;
@@ -269,6 +270,7 @@ function callback(request,data) {
                 }
             }
         }
+        */
     }
 
     if (data.status === "done") {
@@ -323,7 +325,8 @@ function run() {
     var divand = new DIVAnd(baseurl);
 
     table = document.getElementById("DIVAnd_table");
-    var data = extractform(table,SAMPLE_DATA);
+    table_metadata = document.getElementById("DIVAnd_table_metadata");
+    var data = extractform(table,table_metadata,SAMPLE_DATA);
 
     document.getElementById("status").innerHTML = "";
     document.getElementById("result").style.display = "none";
@@ -341,8 +344,25 @@ function run() {
 }
 
 
+function captialize(string) {
+    return string.charAt(0).toUpperCase() + string.slice(1);
+}
 
-function appendform(table,data) {
+
+function readablename(key) {
+    var name;
+
+    if (FIELDS[key]) {
+        name = FIELDS[key].name;
+    }
+    else {
+        name = captialize(key.replace("metadata_","").replace(/_/g," "));
+    }
+
+    return name;
+}
+
+function appendform(table,table_metadata,data) {
     var tr, td, label, input, name;
 
     for (var key in data) {
@@ -353,11 +373,7 @@ function appendform(table,data) {
             td = document.createElement("td");
             label = document.createElement("label");
 
-            name = key;
-            if (FIELDS[key]) {
-                name = FIELDS[key].name;
-            }
-
+            name = readablename(key);
             label.appendChild(document.createTextNode(name));
             td.appendChild(label);
             tr.appendChild(td);
@@ -393,8 +409,13 @@ function appendform(table,data) {
             }
             tr.appendChild(td);
 
-            table.appendChild(tr);
 
+            if (key.indexOf("metadata") === 0) {
+                table_metadata.appendChild(tr);
+            }
+            else {
+                table.appendChild(tr);
+            }
         }
     }
 
@@ -416,15 +437,23 @@ function parse(sampleval,value) {
 
 }
 
-function extractform(table,data) {
-    var d = {};
+function extractform(table,table_metadata,data) {
+    var d = {}, tab;
 
     for (var key in data) {
         if (data.hasOwnProperty(key)) {
+
+            if (key.indexOf("metadata") === 0) {
+                tab = table_metadata;
+            }
+            else {
+                tab = table;
+            }
+
             sampleval = data[key]
 
             if (key === "monthlist")  {
-                inputs = table.querySelectorAll("[name=" + key + "]");
+                inputs = tab.querySelectorAll("[name=" + key + "]");
                 val = Array.prototype.map.call(inputs,function(e) { return e.value });
 
                 if (val[val.length-1] === "") {
@@ -434,7 +463,7 @@ function extractform(table,data) {
                 d[key] = val.map(function(e) { return parse(sampleval[0],e); });
             }
             else {
-                value = table.querySelector("[name=" + key + "]").value;
+                value = tab.querySelector("[name=" + key + "]").value;
                 d[key] = parse(sampleval,value);
             }
         }
@@ -463,15 +492,16 @@ var table, data, data2;
 
 
     var table = document.getElementById("DIVAnd_table");
+    var table_metadata = document.getElementById("DIVAnd_table_metadata");
+
     data = SAMPLE_DATA;
-    appendform(table,data);
+    appendform(table,table_metadata,data);
 
     document.getElementById("run").onclick = run;
 
-    data2 = extractform(table,data);
+    data2 = extractform(table,table_metadata,data);
     console.log(data2);
 
-    table = document.getElementById("DIVAnd_table");
     table.onkeyup = function(event)  {
         //console.log("this",this,event.target);
         var target = event.target;
@@ -499,6 +529,10 @@ var table, data, data2;
 
     load_varnames();
     document.querySelector("input[name=observations]").onchange = load_varnames;
+
+    document.querySelector("h2.metadata").onclick = function() {
+        this.classList.toggle('collabse');
+    }
 
 
 })();

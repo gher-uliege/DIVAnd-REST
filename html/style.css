@@ -39,3 +39,83 @@ td, th {
 tr:hover {
     background-color: #dddddd;
 }
+
+h2 {
+  user-select: none;
+  margin-right: 10px;
+}
+h2::after {
+  content: "\00a0▼";
+  font-size: 15px;
+   display: inline-block;
+   transition: transform 0.3s linear;
+}
+
+h2.collabse::after {
+  transform: rotate(-90deg);
+  translateX(3px);
+  transition: transform 0.3s linear;
+}
+
+h2.collabse + table {
+  color: red;
+  display: none;
+}
+
+button {
+    color: #fff;
+    background-color: #337ab7;
+    border-color: #2e6da4;
+    border: none;
+    color: white;
+    text-align: center;
+    text-decoration: none;
+    font-size: 16px;
+    padding: 10px 14px;
+    border-radius: 4px;
+    margin: 20px auto;
+    display: block;
+
+}
+
+button:hover {
+    color: #fff;
+    background-color: #286090;
+    border-color: #204d74;
+}
+
+#status {
+  text-align: center;  
+}
+
+/*
+#status {
+  display: inline-block;
+  width: 64px;
+  height: 64px;
+}
+#status:after {
+  content: " ";
+  display: block;
+  width: 86px;
+  height: 86px;
+  margin: 1px;
+  border-radius: 50%;
+  border: 5px solid #cef;
+  border-color: #cef transparent #cef transparent;
+  animation: lds-dual-ring 1.2s linear infinite;
+}
+@keyframes lds-dual-ring {
+  0% {
+    transform: translateY(-35px) rotate(0deg);
+  }
+  100% {
+    transform: translateY(-35px) rotate(360deg);
+  }
+}
+*/
+
+#result {
+  display: block;
+  text-align: center;  
+}
