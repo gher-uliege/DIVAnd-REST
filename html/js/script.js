@@ -1,7 +1,84 @@
 var baseurl = window.location.href;
 var divand = new DIVAnd(baseurl);
 
-
+var FIELDS = {
+    "observations": {
+        "name": "URL of the observations",
+        "description": ""
+    },
+    "varname": {
+        "name": "Name of the variable",
+        "description": ""
+    },
+    "bbox": {
+        "name": "Bounding box (east, south, west, north)",
+        "description": ""
+    },
+    "depth": {
+        "name": "Comma separated list of depth levels",
+        "description": ""
+    },
+    "len": {
+        "name": "Correlation length in zonal and meridional direction (meters)",
+        "description": ""
+    },
+    "epsilon2": {
+        "name": "Error voariance of observation (relative to the error variance of the background field)",
+        "description": ""
+    },
+    "resolution": {
+        "name": "Resolution in zonal and meridional direction (arc degree)",
+        "description": ""
+    },
+    "years": {
+        "name": "Start and end year",
+        "description": ""
+    },
+    "monthlist": {
+        "name": "Month of every season",
+        "description": ""
+    },
+    "bathymetry": {
+        "name": "Bathymetry",
+        "description": ""
+    },
+    "len": {
+        "name": "Correlation length in zonal and meridional direction",
+        "description": ""
+    },
+    "len": {
+        "name": "Correlation length in zonal and meridional direction",
+        "description": ""
+    },
+    "len": {
+        "name": "Correlation length in zonal and meridional direction",
+        "description": ""
+    },
+    "len": {
+        "name": "Correlation length in zonal and meridional direction",
+        "description": ""
+    },
+    "len": {
+        "name": "Correlation length in zonal and meridional direction",
+        "description": ""
+    },
+    "len": {
+        "name": "Correlation length in zonal and meridional direction",
+        "description": ""
+    },
+    "len": {
+        "name": "Correlation length in zonal and meridional direction",
+        "description": ""
+    },
+    "len": {
+        "name": "Correlation length in zonal and meridional direction",
+        "description": ""
+    },
+    "len": {
+        "name": "Correlation length in zonal and meridional direction",
+        "description": ""
+    },
+}
 var SAMPLE_DATA = {
    "observations": "sampledata:WOD-Salinity",
    //"observations": "https://b2drop.eudat.eu/s/UsF3RyU3xB1UM2o/download",
@@ -22,35 +99,17 @@ var SAMPLE_DATA = {
       100000.0
    ],
    "epsilon2": 1.0,
-   "resolution": [
-      0.05,
-      0.05
-   ],
+   //"resolution": [      0.05,      0.05   ],
+   "resolution": [      0.5,      0.5   ],
    "years": [
       1900,
       2018
    ],
    "monthlist": [
-      [
-         1,
-         2,
-         3
-      ],
-      [
-         4,
-         5,
-         6
-      ],
-      [
-         7,
-         8,
-         9
-      ],
-      [
-         10,
-         11,
-         12
-      ]
+      [         1,         2,         3      ],
+      [         4,         5,         6      ],
+      [         7,         8,         9      ],
+      [         10,         11,         12      ]
    ],
    "bathymetry": "sampledata:gebco_30sec_16",
    "metadata_project": "SeaDataCloud",
@@ -80,7 +139,7 @@ var SAMPLE_DATA = {
 
 
 
-function checkAnalysis(url,callback) {
+function checkAnalysis(url,request,callback) {
     var xhr = new XMLHttpRequest();
 
     xhr.open("GET", url, true);
@@ -90,25 +149,23 @@ function checkAnalysis(url,callback) {
             console.log("length",xhr.responseText.length,xhr.getResponseHeader('Cache-Control'));
             var jsonResponse = JSON.parse(xhr.responseText);
 
+            // callback
+            callback(request,jsonResponse);
 
             if (jsonResponse.status === "pending") {
                 setTimeout(function(){
                     console.log("recheck");
-                    checkAnalysis(url,callback);
+                    checkAnalysis(url,request,callback);
                 }, 3000);
             }
             else {
                 // done!
-                // callback
         	    console.log("ok, done", jsonResponse);
-                callback("done",jsonResponse);
             }
         }
 
     };
     xhr.send(null);
-
-
 }
 
 
@@ -144,7 +201,7 @@ DIVAnd.prototype.analysis = function(data,callback) {
             callback("processing",{});
 
             var newurl = that.baseurl + xhr.getResponseHeader('Location');
-            checkAnalysis(newurl,callback);
+            checkAnalysis(newurl,{data: data},callback);
         }
     };
     xhr.send(JSON.stringify(data));
@@ -177,15 +234,56 @@ DIVAnd.prototype.listvarnames = function(observations,callback) {
     xhr.send(JSON.stringify({"observations": observations}));
 }
 
-function callback(step,data) {
-    console.log("step",step,data);
-    document.getElementById("status").innerHTML = step;
+function callback(request,data) {
+    console.log("step",data);
+    if (data.status) {
+       document.getElementById("status").innerHTML = data.status;
+    }
 
-    if (step === "done") {
+    if (data.message) {
+        // build time index selector
+        var tindex = document.getElementById("tindex");
+        var current_tindex = tindex.value;
+        while (tindex.firstChild) {
+            tindex.removeChild(tindex.firstChild);
+        }
+        for (var i = 0; i < data.message.length; i++) {
+            if (data.message[i].timeindex !== undefined) {
+                var opt = document.createElement("option");
+                opt.appendChild(document.createTextNode("" + data.message[i].timeindex));
+                opt.value = "" + data.message[i].timeindex;
+                tindex.appendChild(opt);
+            }
+        }
+        // restore time index
+        tindex.value = current_tindex;
+
+        var lastmessage = data.message[data.message.length-1];
+
+        if (lastmessage) {
+            if (lastmessage.timeindex !== undefined) {
+                var timeindex = lastmessage.timeindex;
+                if (document.getElementById("update_preview").checked) {
+                   tindex.value = timeindex;
+                   update_preview(data.analysisid,request.data.varname);
+                }
+            }
+        }
+    }
+
+    if (data.status === "done") {
         var result = document.getElementById("result");
         result.href = data.url;
         result.style.display = "block";
     }
+}
+
+function update_preview(analysisid,varname) {
+    var timeindex = document.getElementById("tindex").value;
+    var depthindex = document.getElementById("zindex").value;
+    // http://localhost:8002/v1/preview/upMLcrKGWmulqwm0mKbmzwj7/Salinity/1/1
+    var previewurl = divand.baseurl + "/v1" + "/preview/" + analysisid + "/" + varname + "/" + depthindex + "/" + timeindex;
+    document.getElementById("preview").src = previewurl;
 }
 
 function update_varnames(varnames) {
@@ -198,13 +296,12 @@ function update_varnames(varnames) {
     //varnames = ["Salinity"]
 
     for (var i = 0; i < varnames.length; i++) {
-
         var opt = document.createElement("option");
         opt.appendChild(document.createTextNode(varnames[i]));
         opt.value = varnames[i];
         select.append(opt)
     }
-    
+
     parent.appendChild(select);
 
 }
@@ -229,13 +326,24 @@ function run() {
     var data = extractform(table,SAMPLE_DATA);
 
     document.getElementById("status").innerHTML = "";
+    document.getElementById("result").style.display = "none";
+    document.getElementById("preview").removeAttribute("src");
+
     divand.analysis(data,callback);
+
+    zindex = document.getElementById("zindex");
+    for (var i = 0; i < data.depth.length; i++) {
+        var opt = document.createElement("option");
+        opt.appendChild(document.createTextNode(data.depth[i]))
+        opt.value = i+1;
+        zindex.appendChild(opt);
+    }
 }
 
 
 
 function appendform(table,data) {
-    var tr, td, label, input;
+    var tr, td, label, input, name;
 
     for (var key in data) {
         if (data.hasOwnProperty(key)) {
@@ -244,7 +352,13 @@ function appendform(table,data) {
             tr = document.createElement("tr");
             td = document.createElement("td");
             label = document.createElement("label");
-            label.appendChild(document.createTextNode(key));
+
+            name = key;
+            if (FIELDS[key]) {
+                name = FIELDS[key].name;
+            }
+
+            label.appendChild(document.createTextNode(name));
             td.appendChild(label);
             tr.appendChild(td);
 

@@ -16,6 +16,13 @@ const EXTERNAL_MOUNTPOINT = get(ENV,"DIVAND_EXTERNAL_MOUNTPOINT","/")
 const EXTERNAL_PORT = parse(Int,get(ENV,"DIVAND_EXTERNAL_PORT","8002"))
 const port = parse(Int,get(ENV,"DIVAND_PORT","8001"))
 const workdir = get(ENV,"DIVAND_WORKDIR",tempdir())
+const inputdir =
+    if haskey(ENV,"DIVAND_INPUTDIR")
+        realpath(ENV["DIVAND_INPUTDIR"])
+    else
+        ""
+    end
+const outputdir = get(ENV,"DIVAND_OUTPUTDIR",inputdir)
 const baseurl = get(ENV,"DIVAND_EXTERNAL_BASEURL","http://$(EXTERNAL_HOST):$(EXTERNAL_PORT)/")
 const hasnetwork = get(ENV,"DIVAND_HASNETWORK","true") == "true"
 
@@ -30,6 +37,7 @@ const external_basedir = "$(EXTERNAL_MOUNTPOINT)$(version)"
 
 const idlength = 24
 
+DIVAnd_tt = Dict{String,Any}()
 DIVAnd_tasks = Dict{String,Any}()
 DIVAnd_tasks_status = Dict{String,Any}()
 
@@ -118,6 +126,17 @@ function resolvedata(url)
                 return nothing
             end
         end
+    elseif inputdir != ""
+        fullname = realpath(joinpath(inputdir,url))
+        if startswith(fullname,inputdir)
+            if isfile(fullname)
+                return fullname
+            else
+                error("$(fullname) not found")
+            end
+        else
+            error("access to $(fullname) is denied")
+        end
     else
         error("URI scheme is not allowed $(url)")
     end
@@ -154,7 +173,6 @@ function analysis_wrapper(data,filename,channel)
     leny = fill(data["len"][2],sz)
     lenz = [10+depthr[k]/15 for i = 1:sz[1], j = 1:sz[2], k = 1:sz[3]]
 
-    @show mean(lenz)
     years = [data["years"][1]:data["years"][2]]
 
 
@@ -188,7 +206,7 @@ function analysis_wrapper(data,filename,channel)
     memtofit = 10
     function plotres(timeindex,sel,fit,erri)
         @show timeindex
-        push!(channel,"time index $(timeindex)")
+        push!(channel,Dict("timeindex" => timeindex))
     end
 
     @time res = DIVAnd.diva3d(
@@ -303,29 +321,20 @@ function analysis(req::HTTP.Request)
 
         channel = Channel(Inf)
 
-        @async begin
-            push!(channel,"a")
-            println("request analysis")
+        task = @async begin
             fname = analysisname(analysisid)
             if isfile(fname)
                 rm(fname)
             end
-            #sleep(5.0)
 
-            push!(channel,"b")
-            println("request analysis 2")
             analysis_wrapper(data,fname * ".temp",channel)
-            println("request analysis 3")
             mv(fname * ".temp",fname)
-            #f = open(fname,"w")
-            #write(f,"lala123")
-            #close(f)
-            push!(channel,"done")
+            close(channel)
         end
 
+        DIVAnd_tt[analysisid] = task
         DIVAnd_tasks[analysisid] = channel
-        DIVAnd_tasks_status[analysisid] = "started"
-        println("request analysis 4")
+        DIVAnd_tasks_status[analysisid] = []
 
         # analysis in progress
         return HTTP.Response(202,["Location" => "$(basedir)/queue/$(analysisid)"])
@@ -349,13 +358,20 @@ function queue(req::HTTP.Request)
     analysisid = split(path,"$(basedir)/queue/")[2]
 
     @show DIVAnd_tasks[analysisid], isready(DIVAnd_tasks[analysisid])
-    if isready(DIVAnd_tasks[analysisid])
-        DIVAnd_tasks_status[analysisid] = take!(DIVAnd_tasks[analysisid])
+    while isready(DIVAnd_tasks[analysisid])
+        push!(DIVAnd_tasks_status[analysisid],take!(DIVAnd_tasks[analysisid]))
     end
 
     filename = analysisname(analysisid)
     retry = 4
-    if isfile(filename)
+    #if isfile(filename)
+    if istaskdone(DIVAnd_tt[analysisid])
+        # get pending messages
+        for s in DIVAnd_tasks[analysisid]
+            @show s
+            push!(DIVAnd_tasks_status[analysisid],s)
+        end
+
         @show "return file"
 
         return HTTP.Response(
@@ -363,8 +379,10 @@ function queue(req::HTTP.Request)
             ["Content-Type" => "application/json"],
             body = JSON.json(Dict(
                 "status" => "done",
+                "analysisid" => analysisid,
                 # relative URL to the DIVAnd gui
-                "url" => "$(version)/analysis/$(analysisid)"))
+                "url" => "$(version)/analysis/$(analysisid)",
+                "message" => DIVAnd_tasks_status[analysisid]))
         )
 
     else
@@ -373,8 +391,10 @@ function queue(req::HTTP.Request)
             ["Cache-Control" => "max-age=$(retry)",
              "Content-Type" => "application/json"],
             body = JSON.json(Dict(
-               "status" => "pending",
-               "message" => DIVAnd_tasks_status[analysisid])))
+                "status" => "pending",
+                "analysisid" => analysisid,
+                "message" => DIVAnd_tasks_status[analysisid]))
+        )
     end
 end
 
@@ -450,7 +470,13 @@ function preview(req::HTTP.Request)
     fname = analysisname(analysisid)
 
     @show fname
+    if !isfile(fname)
+        fname = fname * ".temp"
+    end
+    @show fname
+    clf()
     OceanPlot.hview(fname,String(varname),:,:,zindex,tindex)
+    title("time-index $(tindex)")
     buf = IOBuffer()
     savefig(buf; format = "png")
 
