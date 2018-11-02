@@ -49,6 +49,7 @@ h2 {
   user-select: none;
   margin-right: 10px;
 }
+
 h2::after {
   content: "\00a0▼";
   font-size: 15px;
@@ -63,14 +64,11 @@ h2.collabse::after {
 }
 
 h2.collabse + table {
-  color: red;
-  display: none;
+   display: none;
 }
 
 button {
     color: #fff;
-    background-color: #337ab7;
-    border-color: #2e6da4;
     background-color: #01bbf4;
     font-weight: bold;
     border: none;
@@ -79,17 +77,15 @@ button {
     text-decoration: none;
     font-size: 16px;
     padding: 10px 14px;
-    border-radius: 4px;
     margin: 20px auto;
     display: block;
+    transition: 0.2s;
 
 }
 
 button:hover {
     color: #fff;
-    background-color: #286090;
-    border-color: #204d74;
-    background-color: #01bbf4;    
+    background-color: #01bbf4;
     color: #004f9e;
 }
 
@@ -97,45 +93,21 @@ button:hover {
   text-align: center;  
 }
 
-/*
-#status {
-  display: inline-block;
-  width: 64px;
-  height: 64px;
-}
-#status:after {
-  content: " ";
-  display: block;
-  width: 86px;
-  height: 86px;
-  margin: 1px;
-  border-radius: 50%;
-  border: 5px solid #cef;
-  border-color: #cef transparent #cef transparent;
-  animation: lds-dual-ring 1.2s linear infinite;
-}
-@keyframes lds-dual-ring {
-  0% {
-    transform: translateY(-35px) rotate(0deg);
-  }
-  100% {
-    transform: translateY(-35px) rotate(360deg);
-  }
-}
-*/
+
 
 #result {
   display: block;
-  text-align: center;  
+  text-align: center;
 }
 
 
 #run.pending {
     color: #fff;
     background-color: grey;
-    border-color: grey; 
+    border-color: grey;
 }
 
+/* spinner */
 
 #run.pending .spinner {
   display: inline-block;
@@ -146,7 +118,7 @@ button:hover {
   border-radius: 50%;
   border: 2px solid #cef;
   border-color: #cef transparent #cef transparent;
-  animation: lds-dual-ring 1.2s linear infinite;
+  animation: lds-dual-ring 1.4s linear infinite;
 }
 @keyframes lds-dual-ring {
   0% {
@@ -155,4 +127,15 @@ button:hover {
   100% {
     transform: translateY(2px) rotate(360deg);
   }
+}
+
+a {
+    color: #01bbf4;
+    font-weight: bold;
+    transition: 0.2s;
+}
+
+a:hover {
+    color: #004f9e;
+    text-decoration: none;
 }

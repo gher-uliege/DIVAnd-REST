@@ -228,6 +228,9 @@ function analysis_wrapper(data,filename,channel)
     )
 
     DIVAnd.saveobs(filename,(lon,lat,depth,obstime),ids)
+
+    # run garbage collector
+    GC.gc()
 end
 
 

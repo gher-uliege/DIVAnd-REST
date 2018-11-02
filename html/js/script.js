@@ -241,7 +241,7 @@ function callback(request,data) {
         var result = document.getElementById("result");
         result.href = data.url;
         result.style.display = "block";
-        document.getElementById("run").innerHTML = "Run DIVAnd";
+        document.querySelector("#run .message").innerHTML = "Run DIVAnd";
         document.getElementById("run").classList.remove("pending")
     }
 }
@@ -297,7 +297,7 @@ function run() {
     document.getElementById("status").innerHTML = "";
     document.getElementById("result").style.display = "none";
     document.getElementById("preview").removeAttribute("src");
-    document.getElementById("run").innerHTML = "pending";
+    document.querySelector("#run .message").innerHTML = "pending";
     document.getElementById("run").classList.add("pending");
 
     divand.analysis(data,callback);
