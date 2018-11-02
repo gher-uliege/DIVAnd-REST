@@ -1,5 +1,10 @@
 html {
-    font-family: sans-serif;
+    font-family: "Open Sans","Helvetica Neue",Helvetica,Arial,sans-serif;
+    color: #3c5068;
+}
+
+h1, h2 {
+  color: #004f9e;
 }
 
 input[type=text], textarea {
@@ -38,4 +43,99 @@ td, th {
 
 tr:hover {
     background-color: #dddddd;
+}
+
+h2 {
+  user-select: none;
+  margin-right: 10px;
+}
+
+h2::after {
+  content: "\00a0▼";
+  font-size: 15px;
+   display: inline-block;
+   transition: transform 0.3s linear;
+}
+
+h2.collabse::after {
+  transform: rotate(-90deg);
+  translateX(3px);
+  transition: transform 0.3s linear;
+}
+
+h2.collabse + table {
+   display: none;
+}
+
+button {
+    color: #fff;
+    background-color: #01bbf4;
+    font-weight: bold;
+    border: none;
+    color: white;
+    text-align: center;
+    text-decoration: none;
+    font-size: 16px;
+    padding: 10px 14px;
+    margin: 20px auto;
+    display: block;
+    transition: 0.2s;
+
+}
+
+button:hover {
+    color: #fff;
+    background-color: #01bbf4;
+    color: #004f9e;
+}
+
+#status {
+  text-align: center;  
+}
+
+
+
+#result {
+  display: block;
+  text-align: center;
+}
+
+
+#run.pending {
+    color: #fff;
+    background-color: grey;
+    border-color: grey;
+}
+
+/* spinner */
+
+#run.pending .spinner {
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  margin: 1px;
+  margin-right: 10px;
+  border-radius: 50%;
+  border: 2px solid #cef;
+  border-color: #cef transparent #cef transparent;
+  animation: lds-dual-ring 1.4s linear infinite;
+}
+@keyframes lds-dual-ring {
+  0% {
+    transform: translateY(2px) rotate(0deg);
+  }
+  100% {
+    transform: translateY(2px) rotate(360deg);
+  }
+}
+
+a {
+    color: #01bbf4;
+    font-weight: bold;
+    transition: 0.2s;
+}
+
+a:hover {
+    color: #004f9e;
+    text-decoration: none;
 }

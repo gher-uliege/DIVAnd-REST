@@ -28,9 +28,9 @@ while true; do
     curl --silent "$baseurl$LOCATION" > "$tmpfile"
     #cat $tmpfile
     status=$(jq -r .status < "$tmpfile")
-    echo "status $status"
-    docker logs divand_rest_container
-    
+    message=$(jq -r .message < "$tmpfile")
+    echo "status $status ($message)"
+
     if [ "$status" == "done" ]; then
         echo "$ok"
         break

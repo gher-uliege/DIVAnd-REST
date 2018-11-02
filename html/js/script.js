@@ -1,7 +1,48 @@
 var baseurl = window.location.href;
 var divand = new DIVAnd(baseurl);
 
-
+var FIELDS = {
+    "observations": {
+        "name": "URL of the observations",
+        "description": ""
+    },
+    "varname": {
+        "name": "Name of the variable",
+        "description": ""
+    },
+    "bbox": {
+        "name": "Bounding box (east, south, west, north in degrees) ",
+        "description": ""
+    },
+    "depth": {
+        "name": "Comma separated list of depth levels (meters)",
+        "description": ""
+    },
+    "len": {
+        "name": "Correlation length in zonal and meridional direction (meters)",
+        "description": ""
+    },
+    "epsilon2": {
+        "name": "Error voariance of observation (relative to the error variance of the background field)",
+        "description": ""
+    },
+    "resolution": {
+        "name": "Resolution in zonal and meridional direction (in degrees)",
+        "description": ""
+    },
+    "years": {
+        "name": "Start and end year",
+        "description": ""
+    },
+    "monthlist": {
+        "name": "Month of every season",
+        "description": ""
+    },
+    "bathymetry": {
+        "name": "URL of the bathymetry file",
+        "description": ""
+    }
+}
 var SAMPLE_DATA = {
    "observations": "sampledata:WOD-Salinity",
    //"observations": "https://b2drop.eudat.eu/s/UsF3RyU3xB1UM2o/download",
@@ -22,40 +63,22 @@ var SAMPLE_DATA = {
       100000.0
    ],
    "epsilon2": 1.0,
-   "resolution": [
-      0.05,
-      0.05
-   ],
+   //"resolution": [      0.05,      0.05   ],
+   "resolution": [      0.5,      0.5   ],
    "years": [
       1900,
       2018
    ],
    "monthlist": [
-      [
-         1,
-         2,
-         3
-      ],
-      [
-         4,
-         5,
-         6
-      ],
-      [
-         7,
-         8,
-         9
-      ],
-      [
-         10,
-         11,
-         12
-      ]
+      [         1,         2,         3      ],
+      [         4,         5,         6      ],
+      [         7,         8,         9      ],
+      [         10,         11,         12      ]
    ],
    "bathymetry": "sampledata:gebco_30sec_16",
    "metadata_project": "SeaDataCloud",
    "metadata_institution_urn": "SDN:EDMO::1579",
-   "metadata_production": "Diva group. E-mails: a.barth@ulg.ac.be, swatelet@ulg.ac.be",
+   "metadata_production": "...",
    "metadata_Author_e-mail": [
       "Your Name1 <name1@example.com>",
       "Other Name <name2@example.com>"
@@ -80,7 +103,7 @@ var SAMPLE_DATA = {
 
 
 
-function checkAnalysis(url,callback) {
+function checkAnalysis(url,request,callback) {
     var xhr = new XMLHttpRequest();
 
     xhr.open("GET", url, true);
@@ -90,25 +113,23 @@ function checkAnalysis(url,callback) {
             console.log("length",xhr.responseText.length,xhr.getResponseHeader('Cache-Control'));
             var jsonResponse = JSON.parse(xhr.responseText);
 
+            // callback
+            callback(request,jsonResponse);
 
             if (jsonResponse.status === "pending") {
                 setTimeout(function(){
                     console.log("recheck");
-                    checkAnalysis(url,callback);
+                    checkAnalysis(url,request,callback);
                 }, 3000);
             }
             else {
                 // done!
-                // callback
         	    console.log("ok, done", jsonResponse);
-                callback("done",jsonResponse);
             }
         }
 
     };
     xhr.send(null);
-
-
 }
 
 
@@ -144,7 +165,7 @@ DIVAnd.prototype.analysis = function(data,callback) {
             callback("processing",{});
 
             var newurl = that.baseurl + xhr.getResponseHeader('Location');
-            checkAnalysis(newurl,callback);
+            checkAnalysis(newurl,{data: data},callback);
         }
     };
     xhr.send(JSON.stringify(data));
@@ -177,15 +198,60 @@ DIVAnd.prototype.listvarnames = function(observations,callback) {
     xhr.send(JSON.stringify({"observations": observations}));
 }
 
-function callback(step,data) {
-    console.log("step",step,data);
-    document.getElementById("status").innerHTML = step;
+function callback(request,data) {
+    console.log("step",data);
+/*    if (data.status) {
+       document.getElementById("status").innerHTML = data.status;
+    }
+*/
+    if (data.message) {
+        // build time index selector
+        var tindex = document.getElementById("tindex");
+        var current_tindex = tindex.value;
+        while (tindex.firstChild) {
+            tindex.removeChild(tindex.firstChild);
+        }
+        for (var i = 0; i < data.message.length; i++) {
+            if (data.message[i].timeindex !== undefined) {
+                var opt = document.createElement("option");
+                opt.appendChild(document.createTextNode("" + data.message[i].timeindex));
+                opt.value = "" + data.message[i].timeindex;
+                tindex.appendChild(opt);
+            }
+        }
+        // restore time index
+        tindex.value = current_tindex;
 
-    if (step === "done") {
+        var lastmessage = data.message[data.message.length-1];
+
+        /*
+        if (lastmessage) {
+            if (lastmessage.timeindex !== undefined) {
+                var timeindex = lastmessage.timeindex;
+                if (document.getElementById("update_preview").checked) {
+                   tindex.value = timeindex;
+                   update_preview(data.analysisid,request.data.varname);
+                }
+            }
+        }
+        */
+    }
+
+    if (data.status === "done") {
         var result = document.getElementById("result");
         result.href = data.url;
         result.style.display = "block";
+        document.querySelector("#run .message").innerHTML = "Run DIVAnd";
+        document.getElementById("run").classList.remove("pending")
     }
+}
+
+function update_preview(analysisid,varname) {
+    var timeindex = document.getElementById("tindex").value;
+    var depthindex = document.getElementById("zindex").value;
+    // http://localhost:8002/v1/preview/upMLcrKGWmulqwm0mKbmzwj7/Salinity/1/1
+    var previewurl = divand.baseurl + "/v1" + "/preview/" + analysisid + "/" + varname + "/" + depthindex + "/" + timeindex;
+    document.getElementById("preview").src = previewurl;
 }
 
 function update_varnames(varnames) {
@@ -198,13 +264,12 @@ function update_varnames(varnames) {
     //varnames = ["Salinity"]
 
     for (var i = 0; i < varnames.length; i++) {
-
         var opt = document.createElement("option");
         opt.appendChild(document.createTextNode(varnames[i]));
         opt.value = varnames[i];
         select.append(opt)
     }
-    
+
     parent.appendChild(select);
 
 }
@@ -226,16 +291,47 @@ function run() {
     var divand = new DIVAnd(baseurl);
 
     table = document.getElementById("DIVAnd_table");
-    var data = extractform(table,SAMPLE_DATA);
+    table_metadata = document.getElementById("DIVAnd_table_metadata");
+    var data = extractform(table,table_metadata,SAMPLE_DATA);
 
     document.getElementById("status").innerHTML = "";
+    document.getElementById("result").style.display = "none";
+    document.getElementById("preview").removeAttribute("src");
+    document.querySelector("#run .message").innerHTML = "pending";
+    document.getElementById("run").classList.add("pending");
+
     divand.analysis(data,callback);
+
+    zindex = document.getElementById("zindex");
+    for (var i = 0; i < data.depth.length; i++) {
+        var opt = document.createElement("option");
+        opt.appendChild(document.createTextNode(data.depth[i]))
+        opt.value = i+1;
+        zindex.appendChild(opt);
+    }
 }
 
 
+function captialize(string) {
+    return string.charAt(0).toUpperCase() + string.slice(1);
+}
 
-function appendform(table,data) {
-    var tr, td, label, input;
+
+function readablename(key) {
+    var name;
+
+    if (FIELDS[key]) {
+        name = FIELDS[key].name;
+    }
+    else {
+        name = captialize(key.replace("metadata_","").replace(/_/g," "));
+    }
+
+    return name;
+}
+
+function appendform(table,table_metadata,data) {
+    var tr, td, label, input, name;
 
     for (var key in data) {
         if (data.hasOwnProperty(key)) {
@@ -244,7 +340,9 @@ function appendform(table,data) {
             tr = document.createElement("tr");
             td = document.createElement("td");
             label = document.createElement("label");
-            label.appendChild(document.createTextNode(key));
+
+            name = readablename(key);
+            label.appendChild(document.createTextNode(name));
             td.appendChild(label);
             tr.appendChild(td);
 
@@ -279,8 +377,13 @@ function appendform(table,data) {
             }
             tr.appendChild(td);
 
-            table.appendChild(tr);
 
+            if (key.indexOf("metadata") === 0) {
+                table_metadata.appendChild(tr);
+            }
+            else {
+                table.appendChild(tr);
+            }
         }
     }
 
@@ -302,15 +405,23 @@ function parse(sampleval,value) {
 
 }
 
-function extractform(table,data) {
-    var d = {};
+function extractform(table,table_metadata,data) {
+    var d = {}, tab;
 
     for (var key in data) {
         if (data.hasOwnProperty(key)) {
+
+            if (key.indexOf("metadata") === 0) {
+                tab = table_metadata;
+            }
+            else {
+                tab = table;
+            }
+
             sampleval = data[key]
 
             if (key === "monthlist")  {
-                inputs = table.querySelectorAll("[name=" + key + "]");
+                inputs = tab.querySelectorAll("[name=" + key + "]");
                 val = Array.prototype.map.call(inputs,function(e) { return e.value });
 
                 if (val[val.length-1] === "") {
@@ -320,7 +431,7 @@ function extractform(table,data) {
                 d[key] = val.map(function(e) { return parse(sampleval[0],e); });
             }
             else {
-                value = table.querySelector("[name=" + key + "]").value;
+                value = tab.querySelector("[name=" + key + "]").value;
                 d[key] = parse(sampleval,value);
             }
         }
@@ -349,15 +460,16 @@ var table, data, data2;
 
 
     var table = document.getElementById("DIVAnd_table");
+    var table_metadata = document.getElementById("DIVAnd_table_metadata");
+
     data = SAMPLE_DATA;
-    appendform(table,data);
+    appendform(table,table_metadata,data);
 
     document.getElementById("run").onclick = run;
 
-    data2 = extractform(table,data);
+    data2 = extractform(table,table_metadata,data);
     console.log(data2);
 
-    table = document.getElementById("DIVAnd_table");
     table.onkeyup = function(event)  {
         //console.log("this",this,event.target);
         var target = event.target;
@@ -385,6 +497,10 @@ var table, data, data2;
 
     load_varnames();
     document.querySelector("input[name=observations]").onchange = load_varnames;
+
+    document.querySelector("h2.metadata").onclick = function() {
+        this.classList.toggle('collabse');
+    }
 
 
 })();
