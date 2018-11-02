@@ -1,7 +1,7 @@
 using Test
 import HTTP
 import JSON
-@everywhere push!(LOAD_PATH,"/home/abarth/projects/Julia/DIVAnd.jl/src")
+#@everywhere push!(LOAD_PATH,"/home/abarth/projects/Julia/DIVAnd.jl/src")
 import DIVAnd
 using NCDatasets
 using DataStructures
