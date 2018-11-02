@@ -19,6 +19,7 @@ RUN apt-get install -y wget
 RUN apt-get install -y emacs-nox
 RUN apt-get install -y nginx supervisor
 RUN apt-get install -y jq
+RUN apt-get install -y git
 
 RUN wget -O /usr/share/emacs/site-lisp/julia-mode.el https://raw.githubusercontent.com/JuliaEditorSupport/julia-emacs/master/julia-mode.el
 
@@ -46,6 +47,7 @@ RUN i=PhysOcean; julia --eval "using Pkg; Pkg.clone(\"https://github.com/gher-ul
 RUN i=EzXML; julia --eval "using Pkg; Pkg.add(\"$i\"); using $i"
 
 RUN i=DIVAnd; julia --eval "using Pkg; Pkg.clone(\"https://github.com/gher-ulg/$i.jl\"); Pkg.build(\"$i\"); using $i"
+RUN cd ~/.julia/dev/DIVAnd/;  git checkout Alex; git pull
 
 RUN i=DataStructures; julia --eval "using Pkg; Pkg.add(\"$i\"); using $i"
 
@@ -59,11 +61,9 @@ ADD . /home/DIVAnd/DIVAnd-REST
 
 WORKDIR /home/DIVAnd/DIVAnd-REST/
 
-
-#RUN wget -O /home/DIVAnd/DIVAnd-REST/data/gebco_30sec_16.nc https://b2drop.eudat.eu/s/o0vinoQutAC7eb0/download
-#RUN wget -O /home/DIVAnd/DIVAnd-REST/data/WOD-Salinity.nc 'http://b2drop.eudat.eu/s/UsF3RyU3xB1UM2o/download'
-
 USER root
+RUN cd data; ./getdata.sh
+
 RUN chown DIVAnd /home/DIVAnd/DIVAnd-REST/test/test_analysis2.json
 
 CMD supervisord --nodaemon --configuration /home/DIVAnd/DIVAnd-REST/utils/supervisor-app.conf

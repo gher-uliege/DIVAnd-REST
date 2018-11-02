@@ -29,7 +29,8 @@ while true; do
     #cat $tmpfile
     status=$(jq -r .status < "$tmpfile")
     echo "status $status"
-
+    docker logs divand_rest_container
+    
     if [ "$status" == "done" ]; then
         echo "$ok"
         break
@@ -39,7 +40,11 @@ done
 
 url=$(jq -r .url < $tmpfile)
 
-curl --out "$FILENAME" --silent  "$baseurl$url"
+fullurl="$baseurl/$url"
+echo $fullurl
+curl --out "$FILENAME" --silent  "$fullurl"
+
+ls -l  "$FILENAME"
 
 if [ -s "$FILENAME" ]; then
     echo "SUCCESS"

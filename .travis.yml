@@ -7,12 +7,14 @@ os:
 notifications:
   email: false
 before_install:
-  - sudo docker build -t abarth/divand-rest .
+  - sudo docker build -t abarth/divand_rest .
   - docker run --detach --name=divand_rest_container -it -p 8002:8002 abarth/divand_rest
   - docker ps -a
 script:
   - sleep 25; ./test/test_bathymetry_curl.sh
   - ./test/test_curl.sh
 after_success:
-  - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin
-  - echo "OK" # docker push
+  - if [ "$TRAVIS_BRANCH" == master ]; then
+       echo "$DOCKER_PASSWORD" | docker login --username "$DOCKER_USERNAME" --password-stdin;
+       docker push abarth/divand_rest;
+    fi
