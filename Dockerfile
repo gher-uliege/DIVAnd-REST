@@ -51,8 +51,8 @@ RUN cd ~/.julia/dev/DIVAnd/;  git checkout Alex; git pull
 
 RUN i=DataStructures; julia --eval "using Pkg; Pkg.add(\"$i\"); using $i"
 
-RUN i=PyPlot; julia --eval "using Pkg; Pkg.add(\"$i\"); using $i"
-RUN i=OceanPlot; julia --eval "using Pkg; Pkg.add(\"https://github.com/gher-ulg/$i.jl\"); Pkg.build(\"$i\"); using $i"
+#RUN i=PyPlot; julia --eval "using Pkg; Pkg.add(\"$i\"); using $i"
+#RUN i=OceanPlot; julia --eval "using Pkg; Pkg.add(\"https://github.com/gher-ulg/$i.jl\"); Pkg.build(\"$i\"); using $i"
 
 RUN mkdir /home/DIVAnd/DIVAnd-REST
 
