@@ -28,7 +28,8 @@ while true; do
     curl --silent "$baseurl$LOCATION" > "$tmpfile"
     #cat $tmpfile
     status=$(jq -r .status < "$tmpfile")
-    echo "status $status"
+    message=$(jq -r .message < "$tmpfile")
+    echo "status $status ($message)"
 
     if [ "$status" == "done" ]; then
         echo "$ok"

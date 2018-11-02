@@ -1,5 +1,10 @@
 html {
-    font-family: sans-serif;
+    font-family: "Open Sans","Helvetica Neue",Helvetica,Arial,sans-serif;
+    color: #3c5068;
+}
+
+h1, h2 {
+  color: #004f9e;
 }
 
 input[type=text], textarea {
@@ -66,6 +71,8 @@ button {
     color: #fff;
     background-color: #337ab7;
     border-color: #2e6da4;
+    background-color: #01bbf4;
+    font-weight: bold;
     border: none;
     color: white;
     text-align: center;
@@ -82,6 +89,8 @@ button:hover {
     color: #fff;
     background-color: #286090;
     border-color: #204d74;
+    background-color: #01bbf4;    
+    color: #004f9e;
 }
 
 #status {
@@ -118,4 +127,32 @@ button:hover {
 #result {
   display: block;
   text-align: center;  
+}
+
+
+#run.pending {
+    color: #fff;
+    background-color: grey;
+    border-color: grey; 
+}
+
+
+#run.pending .spinner {
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  margin: 1px;
+  margin-right: 10px;
+  border-radius: 50%;
+  border: 2px solid #cef;
+  border-color: #cef transparent #cef transparent;
+  animation: lds-dual-ring 1.2s linear infinite;
+}
+@keyframes lds-dual-ring {
+  0% {
+    transform: translateY(2px) rotate(0deg);
+  }
+  100% {
+    transform: translateY(2px) rotate(360deg);
+  }
 }

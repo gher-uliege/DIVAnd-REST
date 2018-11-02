@@ -1,13 +1,16 @@
 using Test
 import HTTP
 import JSON
+@everywhere push!(LOAD_PATH,"/home/abarth/projects/Julia/DIVAnd.jl/src")
 import DIVAnd
 using NCDatasets
 using DataStructures
 using Random
 using Statistics
+#=
 using PyPlot
 using OceanPlot
+=#
 
 include("webdav.jl")
 
@@ -315,9 +318,9 @@ function analysis(req::HTTP.Request)
 
         observations = data["observations"]
 
-        @show path
         analysisid = randstring(idlength)
         #analysisid = "12345"
+        @show analysisid
 
         channel = Channel(Inf)
 
@@ -357,20 +360,24 @@ function queue(req::HTTP.Request)
     path = HTTP.URI(req.target).path
     analysisid = split(path,"$(basedir)/queue/")[2]
 
+    #=
     @show DIVAnd_tasks[analysisid], isready(DIVAnd_tasks[analysisid])
     while isready(DIVAnd_tasks[analysisid])
         push!(DIVAnd_tasks_status[analysisid],take!(DIVAnd_tasks[analysisid]))
     end
+    =#
 
     filename = analysisname(analysisid)
     retry = 4
     #if isfile(filename)
     if istaskdone(DIVAnd_tt[analysisid])
+        #=
         # get pending messages
         for s in DIVAnd_tasks[analysisid]
             @show s
             push!(DIVAnd_tasks_status[analysisid],s)
         end
+        =#
 
         @show "return file"
 
@@ -460,7 +467,7 @@ function http_listvarnames(req::HTTP.Request)
         body = listvarnames(data))
 end
 
-
+#=
 function preview(req::HTTP.Request)
     path = HTTP.URI(req.target).path
     analysisid,varname,zindexstr,tindexstr = split(split(path,"$(basedir)/preview/")[2],"/")
@@ -485,7 +492,7 @@ function preview(req::HTTP.Request)
         ["Content-Type" => "image/png"],
         body = take!(buf))
 end
-
+=#
 
 HTTP.register!(router, "GET",  "$basedir/bathymetry",HTTP.HandlerFunction(bathymetry))
 
@@ -501,7 +508,7 @@ HTTP.register!(router, "POST", "$basedir/listvarnames",
                HTTP.HandlerFunction(http_listvarnames))
 
 
-HTTP.register!(router, "GET",  "$basedir/preview",HTTP.HandlerFunction(preview))
+#HTTP.register!(router, "GET",  "$basedir/preview",HTTP.HandlerFunction(preview))
 
 server = HTTP.Servers.Server(router)
 #task = @async HTTP.serve(server, HTTP.ip"127.0.0.1", port; verbose=false)

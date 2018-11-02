@@ -11,11 +11,11 @@ var FIELDS = {
         "description": ""
     },
     "bbox": {
-        "name": "Bounding box (east, south, west, north)",
+        "name": "Bounding box (east, south, west, north in degrees) ",
         "description": ""
     },
     "depth": {
-        "name": "Comma separated list of depth levels",
+        "name": "Comma separated list of depth levels (meters)",
         "description": ""
     },
     "len": {
@@ -27,7 +27,7 @@ var FIELDS = {
         "description": ""
     },
     "resolution": {
-        "name": "Resolution in zonal and meridional direction (arc degree)",
+        "name": "Resolution in zonal and meridional direction (in degrees)",
         "description": ""
     },
     "years": {
@@ -39,45 +39,9 @@ var FIELDS = {
         "description": ""
     },
     "bathymetry": {
-        "name": "Bathymetry",
+        "name": "URL of the bathymetry file",
         "description": ""
-    },
-    "len": {
-        "name": "Correlation length in zonal and meridional direction",
-        "description": ""
-    },
-    "len": {
-        "name": "Correlation length in zonal and meridional direction",
-        "description": ""
-    },
-    "len": {
-        "name": "Correlation length in zonal and meridional direction",
-        "description": ""
-    },
-    "len": {
-        "name": "Correlation length in zonal and meridional direction",
-        "description": ""
-    },
-    "len": {
-        "name": "Correlation length in zonal and meridional direction",
-        "description": ""
-    },
-    "len": {
-        "name": "Correlation length in zonal and meridional direction",
-        "description": ""
-    },
-    "len": {
-        "name": "Correlation length in zonal and meridional direction",
-        "description": ""
-    },
-    "len": {
-        "name": "Correlation length in zonal and meridional direction",
-        "description": ""
-    },
-    "len": {
-        "name": "Correlation length in zonal and meridional direction",
-        "description": ""
-    },
+    }
 }
 var SAMPLE_DATA = {
    "observations": "sampledata:WOD-Salinity",
@@ -236,10 +200,10 @@ DIVAnd.prototype.listvarnames = function(observations,callback) {
 
 function callback(request,data) {
     console.log("step",data);
-    if (data.status) {
+/*    if (data.status) {
        document.getElementById("status").innerHTML = data.status;
     }
-
+*/
     if (data.message) {
         // build time index selector
         var tindex = document.getElementById("tindex");
@@ -277,6 +241,8 @@ function callback(request,data) {
         var result = document.getElementById("result");
         result.href = data.url;
         result.style.display = "block";
+        document.getElementById("run").innerHTML = "Run DIVAnd";
+        document.getElementById("run").classList.remove("pending")
     }
 }
 
@@ -331,6 +297,8 @@ function run() {
     document.getElementById("status").innerHTML = "";
     document.getElementById("result").style.display = "none";
     document.getElementById("preview").removeAttribute("src");
+    document.getElementById("run").innerHTML = "pending";
+    document.getElementById("run").classList.add("pending");
 
     divand.analysis(data,callback);
 
