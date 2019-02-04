@@ -60,6 +60,8 @@ RUN mkdir /home/DIVAnd/DIVAnd-REST
 ADD . /home/DIVAnd/DIVAnd-REST
 
 WORKDIR /home/DIVAnd/DIVAnd-REST/
+RUN julia --eval "using Pkg; Pkg.add(PackageSpec(name=\"Tables\", version=\"0.1.12\"))"
+RUN julia --eval "using Pkg; Pkg.add(PackageSpec(name=\"Mustache\", version=\"0.5.8\"))"
 
 USER root
 RUN cd data; ./getdata.sh
