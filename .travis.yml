@@ -11,7 +11,7 @@ before_install:
   - docker run --detach --name=divand_rest_container -it -p 8002:8002 abarth/divand_rest
   - docker ps -a
 script:
-  - sleep 25; ./test/test_bathymetry_curl.sh
+  - sleep 35; ./test/test_bathymetry_curl.sh
   - ./test/test_curl.sh
 after_success:
   - if [ "$TRAVIS_BRANCH" == master ]; then
