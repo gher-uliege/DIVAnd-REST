@@ -38,7 +38,7 @@ USER DIVAnd
 
 #RUN julia --eval 'using Pkg; Pkg.init()'
 
-RUN i=HTTP; julia --eval "using Pkg; Pkg.add(\"$i\"); using $i"
+RUN julia --eval "using Pkg; Pkg.add(PackageSpec(name=\"HTTP\", version=\"0.7.1\")); using HTTP"
 RUN i=JSON; julia --eval "using Pkg; Pkg.add(\"$i\"); using $i"
 RUN i=NCDatasets; julia --eval "using Pkg; Pkg.add(\"$i\"); using $i"
 #RUN i=PhysOcean; julia --eval "using Pkg; Pkg.add(\"$i\"); using $i"
