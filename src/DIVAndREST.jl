@@ -439,7 +439,7 @@ function upload(req::HTTP.Request)
 end
 
 function route!(fun,router,method,url)
-    HTTP.register!(router, method, url, HTTP.RequestHandlerFunction(fun))
+    HTTP.register!(router, method, url, HTTP.HandlerFunction(fun))
 end
 
 function listvarnames(data)
@@ -498,21 +498,21 @@ function preview(req::HTTP.Request)
 end
 =#
 
-HTTP.register!(router, "GET",  "$basedir/bathymetry",HTTP.RequestHandlerFunction(bathymetry))
+HTTP.register!(router, "GET",  "$basedir/bathymetry",HTTP.HandlerFunction(bathymetry))
 
-HTTP.register!(router, "POST", "$basedir/analysis",HTTP.RequestHandlerFunction(analysis))
-HTTP.register!(router, "GET",  "$basedir/analysis",HTTP.RequestHandlerFunction(analysis))
-HTTP.register!(router, "OPTIONS",  "$basedir/analysis",HTTP.RequestHandlerFunction(options_analysis))
+HTTP.register!(router, "POST", "$basedir/analysis",HTTP.HandlerFunction(analysis))
+HTTP.register!(router, "GET",  "$basedir/analysis",HTTP.HandlerFunction(analysis))
+HTTP.register!(router, "OPTIONS",  "$basedir/analysis",HTTP.HandlerFunction(options_analysis))
 
-HTTP.register!(router, "GET",  "$basedir/queue",HTTP.RequestHandlerFunction(queue))
-HTTP.register!(router, "POST", "$basedir/upload",HTTP.RequestHandlerFunction(upload))
+HTTP.register!(router, "GET",  "$basedir/queue",HTTP.HandlerFunction(queue))
+HTTP.register!(router, "POST", "$basedir/upload",HTTP.HandlerFunction(upload))
 
 
 HTTP.register!(router, "POST", "$basedir/listvarnames",
-               HTTP.RequestHandlerFunction(http_listvarnames))
+               HTTP.HandlerFunction(http_listvarnames))
 
 
-#HTTP.register!(router, "GET",  "$basedir/preview",HTTP.RequestHandlerFunction(preview))
+#HTTP.register!(router, "GET",  "$basedir/preview",HTTP.HandlerFunction(preview))
 
 server = HTTP.Servers.Server(router)
 #task = @async HTTP.serve(server, HTTP.ip"127.0.0.1", port; verbose=false)
