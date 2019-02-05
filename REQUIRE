@@ -1,3 +1,4 @@
+# not used: see Dockerfile
 julia 1.0
 HTTP 0.6.9 0.8.0
 JSON

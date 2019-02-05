@@ -12,7 +12,7 @@ using PyPlot
 using OceanPlot
 =#
 
-include("webdav.jl")
+#include("webdav.jl")
 
 const EXTERNAL_HOST = get(ENV,"DIVAND_EXTERNAL_HOST","127.0.0.1")
 const EXTERNAL_MOUNTPOINT = get(ENV,"DIVAND_EXTERNAL_MOUNTPOINT","/")
@@ -383,7 +383,7 @@ function queue(req::HTTP.Request)
         end
         =#
 
-        @show "return file"
+        @info "task is done $(analysisid)"
 
         return HTTP.Response(
             200,
@@ -496,27 +496,23 @@ function preview(req::HTTP.Request)
         ["Content-Type" => "image/png"],
         body = take!(buf))
 end
+
 =#
 
-HTTP.register!(router, "GET",  "$basedir/bathymetry",HTTP.HandlerFunction(bathymetry))
-
-HTTP.register!(router, "POST", "$basedir/analysis",HTTP.HandlerFunction(analysis))
-HTTP.register!(router, "GET",  "$basedir/analysis",HTTP.HandlerFunction(analysis))
-HTTP.register!(router, "OPTIONS",  "$basedir/analysis",HTTP.HandlerFunction(options_analysis))
-
-HTTP.register!(router, "GET",  "$basedir/queue",HTTP.HandlerFunction(queue))
-HTTP.register!(router, "POST", "$basedir/upload",HTTP.HandlerFunction(upload))
+ROUTER = HTTP.Router()
 
 
-HTTP.register!(router, "POST", "$basedir/listvarnames",
-               HTTP.HandlerFunction(http_listvarnames))
+HTTP.@register(ROUTER, "GET", "$basedir/bathymetry", bathymetry)
 
+HTTP.@register(ROUTER, "POST", "$basedir/analysis",analysis)
+HTTP.@register(ROUTER, "GET",  "$basedir/analysis",analysis)
+HTTP.@register(ROUTER, "OPTIONS",  "$basedir/analysis",options_analysis)
 
-#HTTP.register!(router, "GET",  "$basedir/preview",HTTP.HandlerFunction(preview))
+HTTP.@register(ROUTER, "GET",  "$basedir/queue",queue)
+HTTP.@register(ROUTER, "POST", "$basedir/upload",upload)
 
-server = HTTP.Servers.Server(router)
-#task = @async HTTP.serve(server, HTTP.ip"127.0.0.1", port; verbose=false)
-task = @async HTTP.serve(server, HTTP.ip"0.0.0.0", port; verbose=false)
+HTTP.@register(ROUTER, "POST", "$basedir/listvarnames",http_listvarnames)
+@async HTTP.serve(ROUTER, HTTP.Sockets.localhost, port)
 
 # e.g.
 # "http://127.0.0.1:8001/v1"
