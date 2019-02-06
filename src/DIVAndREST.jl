@@ -134,6 +134,7 @@ function resolvedata(url)
         fullname = realpath(joinpath(inputdir,url))
         if startswith(fullname,inputdir)
             if isfile(fullname)
+                @info "use $fullname"
                 return fullname
             else
                 error("$(fullname) not found")

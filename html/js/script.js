@@ -1,4 +1,4 @@
-var baseurl = window.location.href;
+var baseurl = window.location.href.split('?')[0];
 var divand = new DIVAnd(baseurl);
 
 var FIELDS = {
@@ -255,9 +255,16 @@ function update_preview(analysisid,varname) {
 }
 
 function update_varnames(varnames) {
-    var parent = document.querySelector("input[name=varname]").parentNode;
-    parent.removeChild(parent.firstElementChild);
+    var parent;
 
+    if (document.querySelector("input[name=varname]")) {
+        parent = document.querySelector("input[name=varname]").parentNode;
+    }
+    else {
+        parent = document.querySelector("select[name=varname]").parentNode;
+    }
+
+    parent.removeChild(parent.firstElementChild);
     var select = document.createElement("select");
     select.setAttribute("name", "varname");
 
@@ -287,7 +294,7 @@ function load_varnames() {
 function run() {
     var data = SAMPLE_DATA;
 
-    var baseurl = window.location.href;
+    var baseurl = window.location.href.split('?')[0];
     var divand = new DIVAnd(baseurl);
 
     table = document.getElementById("DIVAnd_table");
@@ -441,7 +448,7 @@ function extractform(table,table_metadata,data) {
 
 
 function test() {
-    var baseurl = window.location.href;
+    var baseurl = window.location.href.split('?')[0];
     var divand = new DIVAnd(baseurl);
 
     var varnames;
@@ -451,13 +458,46 @@ function test() {
 
 }
 
+function file_selected(webdav_filepath) {
+    console.log("webdav_filepath",webdav_filepath);
+    document.getElementById("vre_iframe").style.display = "none";
+    document.getElementsByName("observations")[0].value = webdav_filepath;
+    load_varnames()
+}
+
+// message from the file selector
+window.addEventListener("message",function(e) {
+    console.log("message event",e);
+    var key = e.message ? "message" : "data";
+    var data = e[key];
+    console.log("message event data",data);
+    var dataid = data.dataid[0];
+    webdav_filepath = decodeURIComponent(dataid).replace("/remote.php/webdav/","");
+    console.log("webdav_filepath ",webdav_filepath);
+    file_selected(webdav_filepath);
+},false);
+
+
+function open_file_selector() {
+    document.getElementById("vre_iframe").style.display = "block";
+}
+
 
 var table, data, data2;
 
 (function() {
-   // your page initialization code here
+    // your page initialization code here
     // the DOM will be available here
 
+    // get username and password
+
+    var params = (new URL(document.location)).searchParams;
+    document.getElementsByName("b2drop_username")[0].value = params.get("u");
+    document.getElementsByName("b2drop_password")[0].value = params.get("p");
+    form_file_selector
+    document.getElementById("form_file_selector").addEventListener("submit",open_file_selector, false);
+
+    document.getElementById("vre_iframe").style.display = "none";
 
     var table = document.getElementById("DIVAnd_table");
     var table_metadata = document.getElementById("DIVAnd_table_metadata");
