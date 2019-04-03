@@ -23,19 +23,19 @@ var FIELDS = {
         "description": ""
     },
     "epsilon2": {
-        "name": "Error voariance of observation (relative to the error variance of the background field)",
+        "name": "Error covariance of observations (relative to the error variance of the background field)",
         "description": ""
     },
     "resolution": {
-        "name": "Resolution in zonal and meridional direction (in degrees)",
+        "name": "Resolution in zonal and meridional directions (in degrees)",
         "description": ""
     },
     "years": {
-        "name": "Start and end year",
+        "name": "Start and end years",
         "description": ""
     },
     "monthlist": {
-        "name": "Month of every season",
+        "name": "Months of every season",
         "description": ""
     },
     "bathymetry": {
