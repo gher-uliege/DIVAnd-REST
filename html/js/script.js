@@ -1,5 +1,8 @@
+var table, data, data2, config = {};
 var baseurl = window.location.href.split('?')[0];
 var divand = new DIVAnd(baseurl);
+var DEFAULT_WEBDAV_URL = "https://b2drop.eudat.eu/remote.php/webdav";
+
 
 var FIELDS = {
     "observations": {
@@ -195,7 +198,12 @@ DIVAnd.prototype.listvarnames = function(observations,callback) {
             callback(output);
         }
     };
-    xhr.send(JSON.stringify({"observations": observations}));
+    xhr.send(JSON.stringify({
+        "observations": observations,
+        "webdav_username": config.webdav_username,
+        "webdav_password": config.webdav_password,
+        "webdav_url": config.webdav_url
+    }));
 }
 
 function callback(request,data) {
@@ -306,6 +314,10 @@ function run() {
     document.getElementById("preview").removeAttribute("src");
     document.querySelector("#run .message").innerHTML = "pending";
     document.getElementById("run").classList.add("pending");
+
+    data["webdav_username"] = config.webdav_username;
+    data["webdav_password"] = config.webdav_password;
+    data["webdav_url"] = config.webdav_url;
 
     divand.analysis(data,callback);
 
@@ -483,7 +495,6 @@ function open_file_selector() {
 }
 
 
-var table, data, data2;
 
 (function() {
     // your page initialization code here
@@ -492,9 +503,14 @@ var table, data, data2;
     // get username and password
 
     var params = (new URL(document.location)).searchParams;
-    document.getElementsByName("b2drop_username")[0].value = params.get("u");
-    document.getElementsByName("b2drop_password")[0].value = params.get("p");
-    form_file_selector
+    config.webdav_username = params.get("u");
+    config.webdav_password = params.get("p");
+    config.webdav_url = (params.get("url") ? params.get("url") : DEFAULT_WEBDAV_URL);
+
+    document.getElementsByName("b2drop_username")[0].value = config.webdav_username;
+    document.getElementsByName("b2drop_password")[0].value = config.webdav_password;
+    document.getElementsByName("b2drop_url")[0].value = config.webdav_url;
+    //form_file_selector
     document.getElementById("form_file_selector").addEventListener("submit",open_file_selector, false);
 
     document.getElementById("vre_iframe").style.display = "none";

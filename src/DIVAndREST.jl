@@ -7,12 +7,11 @@ using NCDatasets
 using DataStructures
 using Random
 using Statistics
+using WebDAV
 #=
 using PyPlot
 using OceanPlot
 =#
-
-#include("webdav.jl")
 
 const EXTERNAL_HOST = get(ENV,"DIVAND_EXTERNAL_HOST","127.0.0.1")
 const EXTERNAL_MOUNTPOINT = get(ENV,"DIVAND_EXTERNAL_MOUNTPOINT","/")
@@ -109,7 +108,12 @@ end
 
 
 
-function resolvedata(url)
+function resolvedata(url;
+                     webdav_username = nothing,
+                     webdav_password = nothing,
+                     webdav_url = nothing)
+
+    @show url
     if startswith(url,"sampledata:")
         name = split(url,"data:")[2]
         return get(datalist,name,nothing)
@@ -117,7 +121,7 @@ function resolvedata(url)
             startswith(url,"ftp:"))
 
         tmpfname = joinpath(workdir,string(hash(url)))
-
+        @show tmpfname
         if isfile(tmpfname)
             @debug "use $(url) from cache $(tmpfname)"
             return tmpfname
@@ -130,6 +134,11 @@ function resolvedata(url)
                 return nothing
             end
         end
+    elseif true
+        s = WebDAV.Server(webdav_url,webdav_username,webdav_password)
+        fname = tempname()
+        download(s,url,fname)
+        return fname
     elseif inputdir != ""
         fullname = realpath(joinpath(inputdir,url))
         if startswith(fullname,inputdir)
@@ -156,12 +165,22 @@ function analysis_wrapper(data,filename,channel)
     latr = minlat:Δlat:maxlat
 
     @debug "analysis_wrapper1"
-    bathname = resolvedata(data["bathymetry"])
+    bathname = resolvedata(data["bathymetry"],
+                           webdav_username = get(data,"webdav_username",nothing),
+                           webdav_password = get(data,"webdav_password",nothing),
+                           webdav_url = get(data,"webdav_url",nothing)
+                           )
+
     bathisglobal = get(data,"bathymetryisglobal",true)
 
     varname = data["varname"]
 
-    obsname = resolvedata(data["observations"])
+    obsname = resolvedata(data["observations"],
+                          webdav_username = get(data,"webdav_username",nothing),
+                          webdav_password = get(data,"webdav_password",nothing),
+                          webdav_url = get(data,"webdav_url",nothing)
+                          )
+
     epsilon2 = data["epsilon2"]
 
     # fixme just take one
@@ -444,7 +463,13 @@ function route!(fun,router,method,url)
 end
 
 function listvarnames(data)
-    obsname = resolvedata(data["observations"])
+
+    obsname = resolvedata(data["observations"],
+                          webdav_username = get(data,"webdav_username",nothing),
+                          webdav_password = get(data,"webdav_password",nothing),
+                          webdav_url = get(data,"webdav_url",nothing)
+                          )
+    @show obsname
     Dataset(obsname) do ds
         varnames = filter(v -> (!(get(ds[v].attrib,"standard_name","") in ["longitude","latitude","depth","time"])
                                 && (v != "obsid") ),
@@ -464,6 +489,7 @@ function http_listvarnames(req::HTTP.Request)
             HTTP.queryparams(HTTP.URI(req.target))
         end
 
+    @show data
     @debug "data $(data)"
 
     return HTTP.Response(

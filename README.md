@@ -53,3 +53,18 @@ docker logs divand_rest_container
 /usr/sbin/nginx -c /home/DIVAnd/DIVAnd-REST/utils/nginx.conf
 ```
 * run the test script
+
+
+Open with with username and password (see note.md)
+
+http://localhost:8002/?u=...&p=...
+
+# Containers deployed at CSC
+
+Web user-interface:
+
+https://diva.seadatacloud.ml/gui/1234/
+
+Jupyterhub-interface:
+
+https://diva.seadatacloud.ml/1234/tree?
