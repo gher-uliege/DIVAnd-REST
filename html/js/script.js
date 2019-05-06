@@ -515,7 +515,6 @@ function open_file_selector() {
     document.getElementsByName("b2drop_username")[0].value = config.webdav_username;
     document.getElementsByName("b2drop_password")[0].value = config.webdav_password;
     document.getElementsByName("b2drop_url")[0].value = config.webdav_url;
-    //form_file_selector
     document.getElementById("form_file_selector").addEventListener("submit",open_file_selector, false);
 
     document.getElementById("vre_iframe").style.display = "none";
