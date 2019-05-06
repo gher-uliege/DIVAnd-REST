@@ -357,6 +357,11 @@ function analysis(req::HTTP.Request)
             analysis_wrapper(data,fname * ".temp",channel)
             mv(fname * ".temp",fname)
             close(channel)
+
+            if get(data,"webdav_filepath","") != ""
+                server = WebDAV.Server(data["webdav_url"],data["webdav_username"],data["webdav_password"])
+                WebDAV.upload(server,fname,data["webdav_filepath"])
+            end
         end
 
         DIVAnd_tt[analysisid] = task
@@ -436,24 +441,15 @@ function upload(req::HTTP.Request)
 
     @show data
 
-    server = WebDAV(data["webdav"],data["username"],data["password"])
+    server = WebDAV.Server(data["webdav_url"],data["webdav_username"],data["webdav_password"])
+    @show "upload",data["url"]
+    WebDAV.upload(server,Base.download(data["url"]),data["webdav_filepath"])
 
-    # HTTP.open("GET", data["url"],[]) do stream
-    #     #open(server,data["webdav_path"],"w") do out
-    #     open("/tmp/toto123","w") do out
-    #         while !eof(stream)
-    #             data = readavailable(stream)
-    #             @show typeof(data)
-    #             write(out,data)
-    #         end
-    #     end
-    # end
-
-    open(Base.download(data["url"]),"r") do stream
-        @show "upload",data["url"]
-        upload(server,stream,data["webdav_path"])
-        @show "done upload",data["url"]
-    end
+#    open(Base.download(data["url"]),"r") do stream
+#        @show "upload",data["url"]
+#        upload(server,stream,data["webdav_filepath"])
+#        @show "done upload",data["url"]
+#    end
 
     return HTTP.Response(200,"move")
 end

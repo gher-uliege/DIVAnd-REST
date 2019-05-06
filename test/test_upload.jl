@@ -1,26 +1,30 @@
+#!/usr/bin/env julia
 import JSON
 import HTTP
 using DataStructures
 
+fname = expanduser("~/.b2drop_credentials")
 
-password =
-    if haskey(ENV,"WEBDAV_PASSWORD")
-        ENV["WEBDAV_PASSWORD"]
+if haskey(ENV,"WEBDAV_PASSWORD")
+    username,password,url = ENV["WEBDAV_USERNAME"],ENV["WEBDAV_PASSWORD"],ENV["WEBDAV_URL"]
+else
+    if isfile(fname)
+        webdav_username,webdav_password,webdav_url = split(read(fname,String))
     else
-        read(expanduser("~/.b2drop_password"),String)
+        @info "no file $(fname)"
+        return
     end
+end
 
 data = OrderedDict(
-  "url" => "http://127.0.0.1/DIVAnd/v1/bathymetry/?bbox=-10,30,50,45&resolution=0.02,0.02&dataset=GEBCO",
-  "webdav" => "https://b2drop.eudat.eu/remote.php/webdav",
-  "webdav_path" => "DIVAnd_upload.nc",
-  "username" => "a.barth@ulg.ac.be",
-  "password" => password
+  "url" => "https://postman-echo.com/get",
+  "webdav_url" => webdav_url,
+  "webdav_filepath" => "upload_data.json",
+  "webdav_username" => webdav_username,
+  "webdav_password" => webdav_password
 )
 
-
-
-baseurl = "http://127.0.0.1:8002"
+baseurl = "http://localhost:8002"
 URL = baseurl * "/v1"
 
 resp = HTTP.request("POST",URL * "/upload/", [], JSON.json(data))

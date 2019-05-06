@@ -44,7 +44,11 @@ var FIELDS = {
     "bathymetry": {
         "name": "URL of the bathymetry file",
         "description": ""
-    }
+    },
+    "webdav_filepath": {
+        "name": "WebDAV file path",
+        "description": ""
+    },
 }
 var SAMPLE_DATA = {
    "observations": "sampledata:WOD-Salinity",
@@ -79,6 +83,7 @@ var SAMPLE_DATA = {
       [         10,         11,         12      ]
    ],
    "bathymetry": "sampledata:gebco_30sec_16",
+   "webdav_filepath": "webdav_filename.nc",
    "metadata_project": "SeaDataCloud",
    "metadata_institution_urn": "SDN:EDMO::1579",
    "metadata_production": "...",
@@ -310,7 +315,7 @@ function run() {
     var data = extractform(table,table_metadata,SAMPLE_DATA);
 
     document.getElementById("status").innerHTML = "";
-    document.getElementById("result").style.display = "none";
+    //document.getElementById("result").style.display = "none";
     document.getElementById("preview").removeAttribute("src");
     document.querySelector("#run .message").innerHTML = "pending";
     document.getElementById("run").classList.add("pending");

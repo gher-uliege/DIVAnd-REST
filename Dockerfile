@@ -62,6 +62,8 @@ ADD . /home/DIVAnd/DIVAnd-REST
 WORKDIR /home/DIVAnd/DIVAnd-REST/
 RUN julia --eval "using Pkg; Pkg.add(PackageSpec(name=\"Tables\", version=\"0.1.12\"))"
 RUN julia --eval "using Pkg; Pkg.add(PackageSpec(name=\"Mustache\", version=\"0.5.8\"))"
+RUN julia --eval "using Pkg; Pkg.add(\"https://github.com/Alexander-Barth/WebDAV.jl\")"
+RUN julia --eval "using Pkg; pkg\"precompile\""
 
 USER root
 RUN cd data; ./getdata.sh
