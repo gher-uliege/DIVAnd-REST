@@ -50,7 +50,8 @@ const bathdatasets = Dict{String,Tuple{String,Bool}}(
 const datalist = Dict{String,String}(
     #"WOD-Salinity" => "data/WOD-Salinity.nc",
     "WOD-Salinity" => "data/sample-file.nc",
-    "gebco_30sec_16" => "data/gebco_30sec_16.nc"
+    "gebco_30sec_16" => "data/gebco_30sec_16.nc",
+    "gebco_30sec_4" => "data/gebco_30sec_4.nc",
 )
 
 
@@ -157,14 +158,14 @@ function resolvedata(url;
 end
 
 function analysis_wrapper(data,filename,channel)
-    @debug "analysis_wrapper"
+    @info "analysis_wrapper"
     minlon,minlat,maxlon,maxlat = data["bbox"]
     Δlon,Δlat = data["resolution"]
 
     lonr = minlon:Δlon:maxlon
     latr = minlat:Δlat:maxlat
 
-    @debug "analysis_wrapper1"
+    @info "analysis_wrapper1"
     bathname = resolvedata(data["bathymetry"],
                            webdav_username = get(data,"webdav_username",nothing),
                            webdav_password = get(data,"webdav_password",nothing),
@@ -188,7 +189,7 @@ function analysis_wrapper(data,filename,channel)
     depthr = data["depth"]
 
 
-    @debug "analysis_wrapper2"
+    @info "analysis_wrapper2"
     DIVAnd.checkobs((lon,lat,depth,obstime),value,ids)
 
     sz = (length(lonr),length(latr),length(depthr))
@@ -233,6 +234,7 @@ function analysis_wrapper(data,filename,channel)
         push!(channel,Dict("timeindex" => timeindex))
     end
 
+    @info "start DIVAnd"
     @time res = DIVAnd.diva3d(
         (lonr,latr,depthr,TS),
         (lon,lat,depth,obstime),
@@ -247,8 +249,11 @@ function analysis_wrapper(data,filename,channel)
         memtofit = memtofit,
         plotres = plotres
     )
+    @info "end DIVAnd"
 
+    @info "saveobs"
     DIVAnd.saveobs(filename,(lon,lat,depth,obstime),ids)
+    @info "end saveobs"
 
     # run garbage collector
     GC.gc()
@@ -355,13 +360,17 @@ function analysis(req::HTTP.Request)
             end
 
             analysis_wrapper(data,fname * ".temp",channel)
+            @info "analysis is $fname"
             mv(fname * ".temp",fname)
-            close(channel)
 
             if get(data,"webdav_filepath","") != ""
+                @info "uploading to webdav $(data["webdav_filepath"])"
                 server = WebDAV.Server(data["webdav_url"],data["webdav_username"],data["webdav_password"])
                 WebDAV.upload(server,fname,data["webdav_filepath"])
+                @info "uploaded to webdav $(data["webdav_filepath"])"
             end
+
+            close(channel)
         end
 
         DIVAnd_tt[analysisid] = task
