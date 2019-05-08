@@ -53,21 +53,17 @@ var FIELDS = {
 var SAMPLE_DATA = {
    "observations": "sampledata:WOD-Salinity",
    //"observations": "https://b2drop.eudat.eu/s/UsF3RyU3xB1UM2o/download",
-   "varname": "Salinity",
+    "varname": "Salinity",
    "bbox": [
-      3.0,
-      42.0,
-      12.0,
-      44.5
+     //11.5,39,20,46
+      3.0,     42.0,      12.0,      44.5
    ],
    "depth": [
-       0,
-       20,
-       50
+       0., 5., 10., 15.
    ],
    "len": [
-      50000.0,
-      50000.0
+      100000.0,
+      100000.0
    ],
    "epsilon2": 1.0,
    "resolution": [      0.05,      0.05   ],
@@ -267,7 +263,7 @@ function update_preview(analysisid,varname) {
     document.getElementById("preview").src = previewurl;
 }
 
-function update_varnames(varnames) {
+function clear_varname_input() {
     var parent;
 
     if (document.querySelector("input[name=varname]")) {
@@ -281,7 +277,12 @@ function update_varnames(varnames) {
     var select = document.createElement("select");
     select.setAttribute("name", "varname");
 
-    //varnames = ["Salinity"]
+    parent.appendChild(select);
+    return select;
+}
+
+function update_varnames(varnames) {
+    select = clear_varname_input();
 
     for (var i = 0; i < varnames.length; i++) {
         var opt = document.createElement("option");
@@ -289,18 +290,21 @@ function update_varnames(varnames) {
         opt.value = varnames[i];
         select.append(opt)
     }
-
-    parent.appendChild(select);
-
 }
 
 
 function load_varnames() {
     var observations = document.querySelector("input[name=observations]").value;
+    document.querySelector("#run .message").innerHTML = "pending";
+    document.getElementById("run").classList.add("pending");
+    clear_varname_input();
 
     divand.listvarnames(observations,function(resp) {
         console.log(resp.varnames);
         update_varnames(resp.varnames);
+
+        document.querySelector("#run .message").innerHTML = "Run DIVAnd";
+        document.getElementById("run").classList.remove("pending")
     })
 }
 

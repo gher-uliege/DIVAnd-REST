@@ -50,6 +50,7 @@ const bathdatasets = Dict{String,Tuple{String,Bool}}(
 const datalist = Dict{String,String}(
     #"WOD-Salinity" => "data/WOD-Salinity.nc",
     "WOD-Salinity" => "data/sample-file.nc",
+    "ODV-sample" => "data/ODV-sample.txt",
     "gebco_30sec_16" => "data/gebco_30sec_16.nc",
     "gebco_30sec_4" => "data/gebco_30sec_4.nc",
 )
@@ -109,6 +110,22 @@ end
 
 
 
+function getheaderline(fname)
+    for row in eachline(fname)
+        if startswith(row,"//")
+            continue
+        end
+        return split(row,'\t')
+    end
+end
+
+stripunits(h) = ('[' in h ? strip(split(h,'[')[1]) : h)
+
+function getparameters(fname,ignore = ["QF","QV:SEADATANET","QV:SEADATANET:SAMPLE"])
+    return stripunits.(filter(h -> !(h ∈ ignore),  getheaderline(fname)))
+end
+
+
 function resolvedata(url;
                      webdav_username = nothing,
                      webdav_password = nothing,
@@ -117,6 +134,7 @@ function resolvedata(url;
     @show url
     if startswith(url,"sampledata:")
         name = split(url,"data:")[2]
+        @show name
         return get(datalist,name,nothing)
     elseif (startswith(url,"http:") || startswith(url,"https:") ||
             startswith(url,"ftp:"))
@@ -138,6 +156,7 @@ function resolvedata(url;
     elseif true
         s = WebDAV.Server(webdav_url,webdav_username,webdav_password)
         fname = tempname()
+        @info "WebDAV download $url"
         download(s,url,fname)
         return fname
     elseif inputdir != ""
@@ -157,8 +176,112 @@ function resolvedata(url;
     end
 end
 
+function analysis_script(scriptname,filename,data)
+    bathname = resolvedata(data["bathymetry"],
+                           webdav_username = get(data,"webdav_username",nothing),
+                           webdav_password = get(data,"webdav_password",nothing),
+                           webdav_url = get(data,"webdav_url",nothing)
+                           )
+
+    obsname = resolvedata(data["observations"],
+                          webdav_username = get(data,"webdav_username",nothing),
+                          webdav_password = get(data,"webdav_password",nothing),
+                          webdav_url = get(data,"webdav_url",nothing)
+                          )
+
+    #bathname = data["bathymetry"]
+    #obsname = data["observations"]
+
+    write(scriptname,"""
+using DIVAnd
+
+lonr = $(data["bbox"][1]):$(data["resolution"][1]):$(data["bbox"][3])
+latr = $(data["bbox"][2]):$(data["resolution"][2]):$(data["bbox"][4])
+
+bathname = "$(bathname)"
+
+bathisglobal = true;
+
+varname = "$(data["varname"])"
+
+# put the file path to your observations
+obsname = "$(obsname)"
+
+filename = "$(filename)"
+
+epsilon2 = $(data["epsilon2"])
+
+value,lon,lat,depth,obstime,ids = $(if endswith(obsname,".nc")
+        "DIVAnd.loadobs(Float64,obsname,varname)"
+    else
+        "DIVAnd.ODVspreadsheet.load(Float64,[obsname],
+                            [varname]; nametype = :localname );"
+    end)
+
+depthr = $(float.(data["depth"]))
+
+DIVAnd.checkobs((lon,lat,depth,obstime),value,ids)
+
+sz = (length(lonr),length(latr),length(depthr))
+
+lenx = fill($(data["len"][1]),sz)
+leny = fill($(data["len"][2]),sz)
+lenz = [max(10+depthr[k]/15,50) for i = 1:sz[1], j = 1:sz[2], k = 1:sz[3]]
+
+years = [$(data["years"][1]):$(data["years"][2])]
+monthlist = $(map(ml -> Int.(ml),(data["monthlist"])))
+
+TS = DIVAnd.TimeSelectorYearListMonthList(years,monthlist)
+
+# use all keys with the metadata_ prefix
+metadata = $(Dict((replace(k,r"^metadata_" => ""),v)
+                for (k,v) in data if startswith(k,"metadata_")))
+
+ncglobalattrib,ncvarattrib =
+    if length(metadata) > 0
+        DIVAnd.SDNMetadata(metadata,filename,varname,lonr,latr)
+    else
+        Dict{String,String}(),Dict{String,String}()
+    end
+
+if isfile(filename)
+   rm(filename) # delete the previous analysis
+end
+
+memtofit = 20
+function plotres(timeindex,sel,fit,erri)
+    @show timeindex
+end
+
+@time dbinfo = DIVAnd.diva3d(
+    (lonr,latr,depthr,TS),
+    (lon,lat,depth,obstime),
+    value,
+    (lenx,leny,lenz),
+    epsilon2,
+    filename,varname,
+    background_lenz_factor = 1.,
+    background_epsilon2_factor = 100.,
+    bathname = bathname,
+    bathisglobal = bathisglobal,
+    ncvarattrib = ncvarattrib,
+    ncglobalattrib = ncglobalattrib,
+    memtofit = memtofit,
+    plotres = plotres
+)
+
+
+#DIVAnd.saveobs(filename,(lon,lat,depth,obstime),ids)
+""")
+end
+
+
 function analysis_wrapper(data,filename,channel)
-    @info "analysis_wrapper"
+    @info "analysis_wrapper data = $(data)"
+
+    scriptname = tempname() * ".jl"
+    analysis_script(scriptname,filename,data)
+
     minlon,minlat,maxlon,maxlat = data["bbox"]
     Δlon,Δlat = data["resolution"]
 
@@ -184,8 +307,14 @@ function analysis_wrapper(data,filename,channel)
 
     epsilon2 = data["epsilon2"]
 
-    # fixme just take one
-    value,lon,lat,depth,obstime,ids = DIVAnd.loadobs(Float64,obsname,varname)
+    value,lon,lat,depth,obstime,ids =
+        if endswith(obsname,".nc")
+            DIVAnd.loadobs(Float64,obsname,varname)
+        else
+            DIVAnd.ODVspreadsheet.load(Float64,[obsname],
+                                [varname]; nametype = :localname );
+        end
+
     depthr = data["depth"]
 
 
@@ -243,6 +372,8 @@ function analysis_wrapper(data,filename,channel)
         (lenx,leny,lenz),
         epsilon2,
         filename,varname,
+        background_lenz_factor = 1.,
+        background_epsilon2_factor = 100.,
         bathname = bathname,
         bathisglobal = bathisglobal,
         ncvarattrib = ncvarattrib,
@@ -476,14 +607,21 @@ function listvarnames(data)
                           webdav_password = get(data,"webdav_password",nothing),
                           webdav_url = get(data,"webdav_url",nothing)
                           )
-    @show obsname
-    Dataset(obsname) do ds
-        varnames = filter(v -> (!(get(ds[v].attrib,"standard_name","") in ["longitude","latitude","depth","time"])
-                                && (v != "obsid") ),
-                          keys(ds))
-        @debug "varnames $(varnames)"
-        return JSON.json("varnames" => varnames)
-    end
+    @info "obsname: $obsname"
+
+    varnames =
+        if endswith(obsname,".nc")
+            Dataset(obsname) do ds
+                filter(v -> (!(get(ds[v].attrib,"standard_name","") in ["longitude","latitude","depth","time"])
+                             && (v != "obsid") ),
+                       keys(ds))
+            end
+        else
+            getparameters(obsname)
+        end
+
+    @debug "varnames $(varnames)"
+    return JSON.json("varnames" => varnames)
 end
 
 function http_listvarnames(req::HTTP.Request)
