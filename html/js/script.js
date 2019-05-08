@@ -66,12 +66,12 @@ var SAMPLE_DATA = {
        50
    ],
    "len": [
-      100000.0,
-      100000.0
+      50000.0,
+      50000.0
    ],
    "epsilon2": 1.0,
-   //"resolution": [      0.05,      0.05   ],
-   "resolution": [      0.5,      0.5   ],
+   "resolution": [      0.05,      0.05   ],
+   //"resolution": [      0.5,      0.5   ],
    "years": [
       1900,
       2018
@@ -82,8 +82,8 @@ var SAMPLE_DATA = {
       [         7,         8,         9      ],
       [         10,         11,         12      ]
    ],
-   "bathymetry": "sampledata:gebco_30sec_16",
-   "webdav_filepath": "webdav_filename.nc",
+   "bathymetry": "sampledata:gebco_30sec_4",
+   "webdav_filepath": "DIVAnd_result.nc",
    "metadata_project": "SeaDataCloud",
    "metadata_institution_urn": "SDN:EDMO::1579",
    "metadata_production": "...",
@@ -315,7 +315,7 @@ function run() {
     var data = extractform(table,table_metadata,SAMPLE_DATA);
 
     document.getElementById("status").innerHTML = "";
-    //document.getElementById("result").style.display = "none";
+    document.getElementById("result").style.display = "none";
     document.getElementById("preview").removeAttribute("src");
     document.querySelector("#run .message").innerHTML = "pending";
     document.getElementById("run").classList.add("pending");

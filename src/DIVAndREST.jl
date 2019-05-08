@@ -196,7 +196,8 @@ function analysis_wrapper(data,filename,channel)
 
     lenx = fill(data["len"][1],sz)
     leny = fill(data["len"][2],sz)
-    lenz = [10+depthr[k]/15 for i = 1:sz[1], j = 1:sz[2], k = 1:sz[3]]
+    lenz = [max(10+depthr[k]/15,50) for i = 1:sz[1], j = 1:sz[2], k = 1:sz[3]]
+    @info "lenz range: $(extrema(lenz))"
 
     years = [data["years"][1]:data["years"][2]]
 
@@ -228,14 +229,14 @@ function analysis_wrapper(data,filename,channel)
        rm(filename) # delete the previous analysis
     end
 
-    memtofit = 10
+    memtofit = 20
     function plotres(timeindex,sel,fit,erri)
         @show timeindex
         push!(channel,Dict("timeindex" => timeindex))
     end
 
     @info "start DIVAnd"
-    @time res = DIVAnd.diva3d(
+    @time dbinfo = DIVAnd.diva3d(
         (lonr,latr,depthr,TS),
         (lon,lat,depth,obstime),
         value,
@@ -252,7 +253,7 @@ function analysis_wrapper(data,filename,channel)
     @info "end DIVAnd"
 
     @info "saveobs"
-    DIVAnd.saveobs(filename,(lon,lat,depth,obstime),ids)
+    #DIVAnd.saveobs(filename,(lon,lat,depth,obstime),ids)
     @info "end saveobs"
 
     # run garbage collector
@@ -359,6 +360,7 @@ function analysis(req::HTTP.Request)
                 rm(fname)
             end
 
+            @info "running analysis with data = $data"
             analysis_wrapper(data,fname * ".temp",channel)
             @info "analysis is $fname"
             mv(fname * ".temp",fname)
