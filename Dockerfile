@@ -56,7 +56,7 @@ RUN i=DataStructures; julia --eval "using Pkg; Pkg.add(\"$i\"); using $i"
 
 RUN julia --eval "using Pkg; Pkg.add(PackageSpec(name=\"Tables\", version=\"0.1.12\"))"
 RUN julia --eval "using Pkg; Pkg.add(PackageSpec(name=\"Mustache\", version=\"0.5.8\"))"
-RUN julia --eval 'using Pkg;  pkg"add https://github.com/Alexander-Barth/WebDAV.jl"'
+RUN julia --eval 'using Pkg;   pkg"add https://github.com/Alexander-Barth/WebDAV.jl"'
 RUN julia --eval "using Pkg; pkg\"precompile\""
 
 RUN mkdir /home/DIVAnd/DIVAnd-REST
