@@ -48,8 +48,8 @@ const bathdatasets = Dict{String,Tuple{String,Bool}}(
 
 
 const datalist = Dict{String,String}(
-    #"WOD-Salinity" => "data/WOD-Salinity.nc",
-    "WOD-Salinity" => "data/sample-file.nc",
+    "WOD-Salinity" => "data/WOD-Salinity.nc",
+    #"WOD-Salinity" => "data/sample-file.nc",
     "ODV-sample" => "data/ODV-sample.txt",
     "gebco_30sec_16" => "data/gebco_30sec_16.nc",
     "gebco_30sec_4" => "data/gebco_30sec_4.nc",
