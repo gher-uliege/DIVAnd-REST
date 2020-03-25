@@ -42,11 +42,11 @@ RUN julia --eval "using Pkg; Pkg.add(PackageSpec(name=\"HTTP\", version=\"0.8\")
 RUN i=JSON; julia --eval "using Pkg; Pkg.add(\"$i\"); using $i"
 RUN i=NCDatasets; julia --eval "using Pkg; Pkg.add(\"$i\"); using $i"
 #RUN i=PhysOcean; julia --eval "using Pkg; Pkg.add(\"$i\"); using $i"
-RUN i=PhysOcean; julia --eval "using Pkg; Pkg.clone(\"https://github.com/gher-ulg/$i.jl\"); Pkg.build(\"$i\"); using $i"
+RUN i=PhysOcean; julia --eval "using Pkg; Pkg.add(\"https://github.com/gher-ulg/$i.jl\"); Pkg.build(\"$i\"); using $i"
 
 RUN i=EzXML; julia --eval "using Pkg; Pkg.add(\"$i\"); using $i"
 
-RUN i=DIVAnd; julia --eval "using Pkg; Pkg.clone(\"https://github.com/gher-ulg/$i.jl\"); Pkg.build(\"$i\"); using $i"
+RUN i=DIVAnd; julia --eval "using Pkg; Pkg.add(\"https://github.com/gher-ulg/$i.jl\"); Pkg.build(\"$i\"); using $i"
 RUN cd ~/.julia/dev/DIVAnd/;  git checkout Alex; git pull
 
 RUN i=DataStructures; julia --eval "using Pkg; Pkg.add(\"$i\"); using $i"
