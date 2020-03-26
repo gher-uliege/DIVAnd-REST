@@ -10,7 +10,7 @@ mkdir /opt
 cd /opt
 wget https://julialang-s3.julialang.org/bin/linux/x64/$JULIA_VERSION_SHORT/julia-$JULIA_VERSION-linux-x86_64.tar.gz
 
-tar -xvf julia-$JULIA_VERSION-linux-x86_64.tar.gz
+tar -xf julia-$JULIA_VERSION-linux-x86_64.tar.gz
 rm julia-$JULIA_VERSION-linux-x86_64.tar.gz
 mv julia-* julia-$JULIA_VERSION
 
