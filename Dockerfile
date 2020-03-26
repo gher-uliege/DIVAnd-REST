@@ -36,27 +36,22 @@ RUN useradd -ms /bin/bash DIVAnd
 
 USER DIVAnd
 
-#RUN julia --eval 'using Pkg; Pkg.init()'
+RUN julia --eval "using Pkg; Pkg.add(PackageSpec(name=\"HTTP\", version=\"0.8\"))"
+RUN julia --eval "using Pkg; Pkg.add(\"JSON\")"
+RUN julia --eval "using Pkg; Pkg.add(\"NCDatasets\")"
+#RUN  julia --eval "using Pkg; Pkg.add(\"PhysOcean\")"
+RUN julia --eval "using Pkg; pkg\"add https://github.com/gher-ulg/PhysOcean.jl\""
 
-RUN julia --eval "using Pkg; Pkg.add(PackageSpec(name=\"HTTP\", version=\"0.8\")); using HTTP"
-RUN i=JSON; julia --eval "using Pkg; Pkg.add(\"$i\"); using $i"
-RUN i=NCDatasets; julia --eval "using Pkg; Pkg.add(\"$i\"); using $i"
-#RUN i=PhysOcean; julia --eval "using Pkg; Pkg.add(\"$i\"); using $i"
-RUN i=PhysOcean; julia --eval "using Pkg; Pkg.add(\"https://github.com/gher-ulg/$i.jl\"); Pkg.build(\"$i\"); using $i"
+RUN julia --eval "using Pkg; Pkg.add(\"EzXML\")"
+RUN julia --eval "using Pkg; pkg\"add https://github.com/gher-ulg/DIVAnd.jl#Alex\""
+RUN julia --eval "using Pkg; Pkg.add(\"DataStructures\")"
 
-RUN i=EzXML; julia --eval "using Pkg; Pkg.add(\"$i\"); using $i"
+#RUN julia --eval "using Pkg; Pkg.add(\"PyPlot\")"
+#RUN julia --eval "using Pkg; Pkg.add(\"https://github.com/gher-ulg/OceanPlot.jl\"); Pkg.build(\"$i\"); using $i"
 
-RUN i=DIVAnd; julia --eval "using Pkg; Pkg.add(\"https://github.com/gher-ulg/$i.jl\"); Pkg.build(\"$i\"); using $i"
-RUN cd ~/.julia/dev/DIVAnd/;  git checkout Alex; git pull
-
-RUN i=DataStructures; julia --eval "using Pkg; Pkg.add(\"$i\"); using $i"
-
-#RUN i=PyPlot; julia --eval "using Pkg; Pkg.add(\"$i\"); using $i"
-#RUN i=OceanPlot; julia --eval "using Pkg; Pkg.add(\"https://github.com/gher-ulg/$i.jl\"); Pkg.build(\"$i\"); using $i"
-
-RUN julia --eval "using Pkg; Pkg.add(PackageSpec(name=\"Tables\", version=\"0.1.12\"))"
-RUN julia --eval "using Pkg; Pkg.add(PackageSpec(name=\"Mustache\", version=\"0.5.8\"))"
-RUN julia --eval 'using Pkg;   pkg"add https://github.com/Alexander-Barth/WebDAV.jl"'
+#RUN julia --eval "using Pkg; Pkg.add(PackageSpec(name=\"Tables\", version=\"0.1.12\"))"
+#RUN julia --eval "using Pkg; Pkg.add(PackageSpec(name=\"Mustache\", version=\"0.5.8\"))"
+RUN julia --eval "using Pkg; pkg\"add https://github.com/Alexander-Barth/WebDAV.jl\""
 RUN julia --eval "using Pkg; pkg\"precompile\""
 
 RUN mkdir /home/DIVAnd/DIVAnd-REST
